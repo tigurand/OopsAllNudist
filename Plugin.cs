@@ -106,7 +106,7 @@ namespace OopsAllLalafells
             );
 
             var charaIsMountAddr =
-                this.sigScanner.ScanText("40 53 48 83 EC 20 48 8B 01 48 8B D9 FF 50 18 83 F8 08 75 08");
+                this.sigScanner.ScanText("40 53 48 83 EC 20 48 8B 01 48 8B D9 FF 50 10 83 F8 08 75 08");
             PluginLog.Log($"Found IsMount address: {charaIsMountAddr.ToInt64():X}");
             this.charaMountedHook ??=
                 new Hook<CharacterIsMount>(charaIsMountAddr, CharacterIsMountDetour);
