@@ -362,8 +362,6 @@ namespace OopsAllLalafells
             RefreshAllPlayers();
 
             this.commandManager.RemoveHandler("/poal");
-
-            this.pluginInterface.Dispose();
         }
 
         public void Dispose()
