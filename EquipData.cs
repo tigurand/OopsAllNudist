@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace OopsAllLalafells
+namespace OopsAllLalafellsSRE
 {
     public class EquipDataOffsets
     {
