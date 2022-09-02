@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Dalamud.Game.ClientState.Objects.Enums;
 
-namespace OopsAllLalafells {
+namespace OopsAllLalafellsSRE {
     [StructLayout((LayoutKind.Explicit))]
     public struct CharaCustomizeData {
         [FieldOffset((int) CustomizeIndex.Race)] public Race Race;

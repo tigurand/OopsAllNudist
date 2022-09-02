@@ -5,7 +5,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Dalamud.Utility;
 
-namespace OopsAllLalafells
+namespace OopsAllLalafellsSRE
 {
     public class PluginUI
     {

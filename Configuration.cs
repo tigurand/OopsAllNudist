@@ -3,7 +3,7 @@ using Dalamud.Plugin;
 using System;
 using Newtonsoft.Json;
 
-namespace OopsAllLalafells {
+namespace OopsAllLalafellsSRE {
     public class Configuration : IPluginConfiguration {
         [NonSerialized]
         private DalamudPluginInterface pluginInterface;

@@ -17,7 +17,7 @@ using Dalamud.Hooking;
 using Dalamud.IoC;
 using Dalamud.Logging;
 
-namespace OopsAllLalafells
+namespace OopsAllLalafellsSRE
 {
     public class Plugin : IDalamudPlugin
     {
