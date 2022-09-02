@@ -1,4 +1,4 @@
-# OopsAllLalafells
+# OopsAllLalafellsSRE
 I WILL NOT LET THIS PLUGIN DIE AS LONG AS I LIVE Ars Magna#2472 ON DISCORD IF DEAD
 
 FFXIV Dalamud plugin to turn everyone into Lalafells
