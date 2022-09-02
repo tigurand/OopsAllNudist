@@ -1,6 +1,6 @@
 [plugin]
-repository = "https://github.com/ars-magna/OopsAllLalafells.git"
-commit = "669445ae79443477a3157a9075c6f64cd68fd0ad"
+repository = "https://github.com/ars-magna/OopsAllLalafellsSRE.git"
+commit = "73a1371b78dd74021d0293bfbb688c736abe3e49"
 owners = ["ars-magna"]
-project_path = "Oops, All Lalafells"
-changelog = "D17 Compliance"
+project_path = "OopsAllLalafellsSRE"
+changelog = "SRE"
