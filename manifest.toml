@@ -1,6 +1,0 @@
-[plugin]
-repository = "https://github.com/ars-magna/OopsAllLalafellsSRE.git"
-commit = "73a1371b78dd74021d0293bfbb688c736abe3e49"
-owners = ["ars-magna"]
-project_path = "OopsAllLalafellsSRE"
-changelog = "SRE"
