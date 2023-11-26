@@ -7,6 +7,12 @@
         "requested": "[2.1.12, )",
         "resolved": "2.1.12",
         "contentHash": "Sc0PVxvgg4NQjcI8n10/VfUQBAS4O+Fw2pZrAqBdRMbthYGeogzu5+xmIGCGmsEZ/ukMOBuAqiNiB5qA3MRalg=="
+      },
+      "Penumbra.Api": {
+        "type": "Direct",
+        "requested": "[1.0.12, )",
+        "resolved": "1.0.12",
+        "contentHash": "0plNvXfhnOMYdyO+9jqRVx91SQv4lnGj3isRIRdZ0q6MGyk3oCpd4imu/nyrO5tH9cQEsVltakzJAXecSuDAMQ=="
       }
     }
   }

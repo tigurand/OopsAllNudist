@@ -1,23 +1,24 @@
 using Dalamud.Configuration;
 using Dalamud.Plugin;
-using Newtonsoft.Json;
 using System;
+using static OopsAllLalafellsSRE.Windows.Constant;
 
 namespace OopsAllLalafellsSRE
 {
+    [Serializable]
     public class Configuration : IPluginConfiguration
     {
+        public int Version { get; set; } = 0;
+        public Race SelectedRace { get; set; } = Race.LALAFELL;
+
+        public bool changeSelf { get; set; } = false;
+        public bool changeOthers { get; set; } = false;
+        public bool memorizeConfig { get; set; } = false;
+        public bool immersiveMode { get; set; } = false;
+
+        // the below exist just to make saving less cumbersome
         [NonSerialized]
         private DalamudPluginInterface? pluginInterface;
-
-        public int Version { get; set; } = 1;
-
-        public Race ChangeOthersTargetRace { get; set; } = Race.LALAFELL;
-
-        public bool ShouldChangeOthers { get; set; } = false;
-
-        [JsonIgnore] // Experimental feature - do not load/save
-        public bool ImmersiveMode { get; set; } = false;
 
         public void Initialize(DalamudPluginInterface pluginInterface)
         {
@@ -26,7 +27,7 @@ namespace OopsAllLalafellsSRE
 
         public void Save()
         {
-            pluginInterface?.SavePluginConfig(this);
+            pluginInterface!.SavePluginConfig(this);
         }
     }
 }
