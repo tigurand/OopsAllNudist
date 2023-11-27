@@ -3,7 +3,6 @@ using ImGuiNET;
 using OopsAllLalafellsSRE.Utils;
 using System;
 using System.Numerics;
-using System.Reflection;
 using static OopsAllLalafellsSRE.Windows.Constant;
 
 namespace OopsAllLalafellsSRE.Windows;
@@ -63,6 +62,7 @@ public class ConfigWindow : Window, IDisposable
         }
 
         // Immersive Mode
+        // Currently does nothing
         bool _ImmersiveMode = configuration.immersiveMode;
         if (ImGui.Checkbox("Immersive Mode", ref _ImmersiveMode))
         {
@@ -79,7 +79,7 @@ public class ConfigWindow : Window, IDisposable
                 OnConfigChanged?.Invoke();
             }
         }
-        ImGui.Text("Note: If Immersive Mode is enabled, \"Examine\" windows\n will also be modified.");
+        ImGui.Text("Note: If Immersive Mode is enabled, \"Examine\" windows\n will also be modified.\nNot yet implemented.");
 
         // Confirm window for immersive mode
         if (ImGui.BeginPopupModal("Confirm Immersive Mode", ref _ImmersiveMode, ImGuiWindowFlags.AlwaysAutoResize))
