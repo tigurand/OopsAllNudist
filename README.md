@@ -7,7 +7,8 @@ Turn everyone around you into Lalafells (or other races!)
 - Updated to 6.5 by Kelvin
 
 ## Usage
-Add `https://raw.githubusercontent.com/kelvin124124/CustomPlugins/main/pluginmaster.json` to list of custom repo under Experimental tab in dalamud settings.
+Add `https://raw.githubusercontent.com/kelvin124124/CustomPlugins/main/pluginmaster.json` and `https://raw.githubusercontent.com/xivdev/Penumbra/master/repo.json` to list of custom repo under Experimental tab in dalamud settings.  
+Install and enable Penumbra and OopsAllLalafellsSRE.
 
 ## ⚠️ READ THIS ⚠️
 
