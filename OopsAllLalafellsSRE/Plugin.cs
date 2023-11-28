@@ -6,6 +6,7 @@ using Dalamud.IoC;
 using Dalamud.Plugin;
 using OopsAllLalafellsSRE.Utils;
 using OopsAllLalafellsSRE.Windows;
+using Penumbra.Api.Enums;
 
 namespace OopsAllLalafellsSRE
 {
@@ -47,6 +48,8 @@ namespace OopsAllLalafellsSRE
 
         public void Dispose()
         {
+            Service.penumbraApi?.RedrawAll(RedrawType.Redraw);
+
             WindowSystem.RemoveAllWindows();
             Service.configWindow.Dispose();
             Service.penumbraApi?.Dispose();
