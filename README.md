@@ -1,12 +1,10 @@
 # OopsAllLalafellsSRE
 
-## Description
 Turn everyone around you into Lalafells (or other races!)
 
-## Creators and Contributors
-- **Created by**: Avaflow
-- **Smol Update (for 6.2)**: Ars Magna
-- **Updated to 6.4**: Kelvin
+- Created by: Avaflow
+- Smol update by Ars Magna for to run in 6.2
+- Updated to 6.4 by Kelvin
 
 ## ⚠️ READ THIS ⚠️
 - **Requirement**: This plugin requires [Penumbra](https://github.com/xivdev/Penumbra) (another Dalamud plugin) to be installed and active.
