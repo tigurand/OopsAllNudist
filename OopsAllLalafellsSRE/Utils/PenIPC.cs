@@ -26,8 +26,7 @@ internal class PenumbraIpc : IDisposable
 
     private void RegisterEvents()
     {
-        CreatingCharacterBaseEvent = Ipc.CreatingCharacterBase.Subscriber(Service.pluginInterface,
-            Drawer.OnCreatingCharacterBase);
+        CreatingCharacterBaseEvent = Ipc.CreatingCharacterBase.Subscriber(Service.pluginInterface, Drawer.OnCreatingCharacterBase);
     }
 
     internal void RedrawObject(GameObject gameObject, RedrawType setting)
@@ -37,6 +36,13 @@ internal class PenumbraIpc : IDisposable
 
     internal void RedrawAll(RedrawType setting)
     {
-        RedrawAllSubscriber.Invoke(setting);
+        try
+        {
+            RedrawAllSubscriber.Invoke(setting);
+        }
+        catch
+        {
+            return;
+        }
     }
 }

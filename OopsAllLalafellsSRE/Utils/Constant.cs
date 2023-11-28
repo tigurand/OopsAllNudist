@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace OopsAllLalafellsSRE.Utils
 {
-    public class Constant
+    internal class Constant
     {
         public enum Race : byte
         {

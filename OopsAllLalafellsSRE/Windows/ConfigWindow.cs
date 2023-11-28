@@ -7,7 +7,7 @@ using static OopsAllLalafellsSRE.Utils.Constant;
 
 namespace OopsAllLalafellsSRE.Windows;
 
-public class ConfigWindow : Window, IDisposable
+internal class ConfigWindow : Window, IDisposable
 {
     private readonly Configuration configuration;
     private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera"];
