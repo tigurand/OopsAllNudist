@@ -20,7 +20,17 @@ namespace OopsAllLalafellsSRE
         public Plugin([RequiredVersion("1.0")] DalamudPluginInterface pluginInterface)
         {
             Service.pluginInterface = pluginInterface;
-            Service.configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+            var loadedConfig = pluginInterface.GetPluginConfig() as Configuration;
+            if (loadedConfig != null && loadedConfig.memorizeConfig)
+            {
+                Service.configuration = loadedConfig;
+            }
+            else
+            {
+                Service.configuration = new Configuration();
+            }
+
             Service.configuration.Initialize(pluginInterface);
 
             _ = pluginInterface.Create<Service>();
