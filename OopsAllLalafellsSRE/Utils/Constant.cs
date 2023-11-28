@@ -2,12 +2,13 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace OopsAllLalafellsSRE.Windows
+namespace OopsAllLalafellsSRE.Utils
 {
     public class Constant
     {
         public enum Race : byte
         {
+            UNKNOWN = 0,
             HYUR = 1,
             ELEZEN = 2,
             LALAFELL = 3,

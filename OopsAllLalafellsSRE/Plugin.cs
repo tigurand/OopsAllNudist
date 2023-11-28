@@ -20,7 +20,19 @@ namespace OopsAllLalafellsSRE
         public Plugin([RequiredVersion("1.0")] DalamudPluginInterface pluginInterface)
         {
             Service.pluginInterface = pluginInterface;
-            Service.configuration = /* pluginInterface.GetPluginConfig() as Configuration ?? */ new Configuration();
+
+            //Service.configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+            // Load the configuration if it exists and 'memorizeConfig' is true
+            var loadedConfig = pluginInterface.GetPluginConfig() as Configuration;
+            if (loadedConfig != null && loadedConfig.memorizeConfig)
+            {
+                Service.configuration = loadedConfig;
+            }
+            else
+            {
+                Service.configuration = new Configuration();
+            }
+
             Service.configuration.Initialize(pluginInterface);
 
             _ = pluginInterface.Create<Service>();
@@ -56,7 +68,7 @@ namespace OopsAllLalafellsSRE
             Service.configWindow.Dispose();
 
             // Refresh all players again
-            Service.penumbraApi?.RedrawAll(RedrawType.AfterGPose);
+            Service.penumbraApi?.RedrawAll(RedrawType.Redraw);
             Service.penumbraApi?.Dispose();
             Service.drawer?.Dispose();
 

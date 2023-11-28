@@ -1,7 +1,7 @@
 using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
-using static OopsAllLalafellsSRE.Windows.Constant;
+using static OopsAllLalafellsSRE.Utils.Constant;
 
 namespace OopsAllLalafellsSRE
 {
@@ -10,11 +10,8 @@ namespace OopsAllLalafellsSRE
     {
         public int Version { get; set; } = 0;
         public Race SelectedRace { get; set; } = Race.LALAFELL;
-
-        public bool changeSelf { get; set; } = false;
-        public bool changeOthers { get; set; } = false;
+        public bool enabled { get; set; } = false;
         public bool memorizeConfig { get; set; } = false;
-        public bool immersiveMode { get; set; } = false;
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]

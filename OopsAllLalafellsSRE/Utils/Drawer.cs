@@ -1,9 +1,6 @@
-using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Objects.Types;
 using Penumbra.Api.Enums;
 using System.Runtime.InteropServices;
-using static OopsAllLalafellsSRE.Windows.Constant;
+using static OopsAllLalafellsSRE.Utils.Constant;
 
 namespace OopsAllLalafellsSRE.Utils
 {
@@ -25,7 +22,7 @@ namespace OopsAllLalafellsSRE.Utils
 
         public static void Initialize()
         {
-            if (Service.configuration.changeOthers == true)
+            if (Service.configuration.enabled == true)
             {
                 RefreshAllPlayers();
             }
@@ -34,38 +31,20 @@ namespace OopsAllLalafellsSRE.Utils
         public static void RefreshAllPlayers()
         {
             Plugin.OutputChatLine("Refreshing all players");
-
-            foreach (var actor in Service.objectTable)
-            {
-                if (actor != null && actor.ObjectKind == ObjectKind.Player)
-                {
-                    ChangeRace(actor.Address, Service.configuration.SelectedRace);
-                    Service.penumbraApi.RedrawObject(actor, RedrawType.Redraw);
-                }
-            }
+            Service.penumbraApi.RedrawAll(RedrawType.Redraw);
         }
-
 
         public static void OnCreatingCharacterBase(nint gameObject, string collectionName, nint modelId, nint customize, nint equipData)
         {
-            if (Service.configuration.changeOthers == false) { return; }
-            //ChangeRace(customize, Service.configuration.SelectedRace);
-
-            // Redraw the character to apply changes
-            GameObject? character = Service.objectTable.CreateObjectReference(gameObject);
-            if (character != null && character is PlayerCharacter)
-            {
-                Service.penumbraApi.RedrawObject(character, RedrawType.Redraw);
-            }
+            if (Service.configuration.enabled == false) { return; }
+            ChangeRace(customize /*Character Pointer*/, Service.configuration.SelectedRace);
         }
 
         private static void ChangeRace(nint customizePtr, Race SelectedRace)
         {
-            // something wrong with this mess
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
 
-
-            if (customData.Race != SelectedRace)
+            if (customData.Race != SelectedRace && customData.Race != Race.UNKNOWN)
             {
                 // Modify the race/tribe accordingly
                 customData.Race = SelectedRace;
