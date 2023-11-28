@@ -3,7 +3,7 @@ using ImGuiNET;
 using OopsAllLalafellsSRE.Utils;
 using System;
 using System.Numerics;
-using static OopsAllLalafellsSRE.Windows.Constant;
+using static OopsAllLalafellsSRE.Utils.Constant;
 
 namespace OopsAllLalafellsSRE.Windows;
 
@@ -19,7 +19,7 @@ public class ConfigWindow : Window, IDisposable
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(350, 275);
+        Size = new Vector2(275, 125);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -36,66 +36,28 @@ public class ConfigWindow : Window, IDisposable
         ImGui.AlignTextToFramePadding();
         ImGui.Text("Target Race");
         ImGui.SameLine();
-        if (ImGui.Combo("Race", ref selectedRaceIndex, race, race.Length))
+        if (ImGui.Combo("###Race", ref selectedRaceIndex, race, race.Length))
         {
             configuration.SelectedRace = MapIndexToRace(selectedRaceIndex);
             configuration.Save();
             OnConfigChanged?.Invoke();
         }
 
-        // Change Self
-        bool _ChangeSelf = configuration.changeSelf;
-        if (ImGui.Checkbox("Change Self", ref _ChangeSelf))
-        {
-            configuration.changeSelf = _ChangeSelf;
-            configuration.Save();
-            OnConfigChanged?.Invoke();
-        }
-
         // Change Others
-        bool _ChangeOthers = configuration.changeOthers;
-        if (ImGui.Checkbox("Change Others", ref _ChangeOthers))
+        bool _Enabled = configuration.enabled;
+        if (ImGui.Checkbox("Enable", ref _Enabled))
         {
-            configuration.changeOthers = _ChangeOthers;
+            configuration.enabled = _Enabled;
             configuration.Save();
             OnConfigChanged?.Invoke();
         }
 
-        // Immersive Mode
-        // Currently does nothing
-        bool _ImmersiveMode = configuration.immersiveMode;
-        if (ImGui.Checkbox("Immersive Mode", ref _ImmersiveMode))
+        // Memorize Option
+        bool _MemorizeConfig = configuration.memorizeConfig;
+        if (ImGui.Checkbox("Memorize Configuration", ref _MemorizeConfig))
         {
-            if (_ImmersiveMode && !configuration.immersiveMode)
-            {
-                // Open the popup only if the option is being enabled
-                ImGui.OpenPopup("Confirm Immersive Mode");
-            }
-            else if (!_ImmersiveMode)
-            {
-                // Directly update the configuration if the option is being disabled
-                configuration.immersiveMode = false;
-                configuration.Save();
-                OnConfigChanged?.Invoke();
-            }
-        }
-        ImGui.Text("Note: If Immersive Mode is enabled, \"Examine\" windows\n will also be modified.\nNot yet implemented.");
-
-        // Confirm window for immersive mode
-        if (ImGui.BeginPopupModal("Confirm Immersive Mode", ref _ImmersiveMode, ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.Text("Enabling Immersive Mode may cause crashes on launch. Are you sure?");
-            if (ImGui.Button("Yes"))
-            {
-                // Update the configuration when confirmed
-                configuration.immersiveMode = true;
-                configuration.Save();
-                OnConfigChanged?.Invoke();
-                ImGui.CloseCurrentPopup();
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("No")) { ImGui.CloseCurrentPopup(); }
-            ImGui.EndPopup();
+            configuration.memorizeConfig = _MemorizeConfig;
+            configuration.Save();
         }
     }
     private static Race MapIndexToRace(int index)

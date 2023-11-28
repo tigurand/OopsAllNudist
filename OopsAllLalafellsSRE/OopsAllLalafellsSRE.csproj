@@ -5,10 +5,10 @@
   <PropertyGroup>
     <Authors></Authors>
     <Company></Company>
-    <Version>0.0.0.1</Version>
-    <Description>A sample plugin.</Description>
+    <Version>1.0.0.0</Version>
+    <Description>Turn everyone around you into Lalafells (or other races!)</Description>
     <Copyright></Copyright>
-    <PackageProjectUrl>https://github.com/goatcorp/SamplePlugin</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/kelvin124124/OopsAllLalafellsSRE</PackageProjectUrl>
     <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
