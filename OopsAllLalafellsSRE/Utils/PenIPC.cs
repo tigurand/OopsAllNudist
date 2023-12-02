@@ -42,7 +42,8 @@ internal class PenumbraIpc : IDisposable
         }
         catch
         {
-            Plugin.OutputChatLine("Warning: Penumbra not found. \nNote: if you disable Penumbra before this plugin, lalafells will stay there until updated.");
+            Plugin.OutputChatLine("Warning: Penumbra not found. " +
+                "\nNote: if you disable Penumbra before this plugin, lalafells will stay there until updated.");
             return;
         }
     }
