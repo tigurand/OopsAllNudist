@@ -24,10 +24,10 @@ namespace OopsAllLalafellsSRE.Utils
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
         }
 
-        public static void OnCreatingCharacterBase(nint _, string _1, nint _2, nint customize, nint _3)
+        public static void OnCreatingCharacterBase(nint _, string _1, nint _2, nint customizePtr, nint _3)
         {
             if (!Service.configuration.enabled) return;
-            ChangeRace(customize /*Character Pointer*/, Service.configuration.SelectedRace);
+            ChangeRace(customizePtr, Service.configuration.SelectedRace);
         }
 
         private static void ChangeRace(nint customizePtr, Race selectedRace)
