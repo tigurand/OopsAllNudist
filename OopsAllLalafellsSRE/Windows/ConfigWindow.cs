@@ -43,7 +43,7 @@ internal class ConfigWindow : Window, IDisposable
             OnConfigChanged?.Invoke();
         }
 
-        // Change Others
+        // Enabled
         bool _Enabled = configuration.enabled;
         if (ImGui.Checkbox("Enable", ref _Enabled))
         {

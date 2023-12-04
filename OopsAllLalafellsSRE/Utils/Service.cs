@@ -14,7 +14,5 @@ internal class Service
     public static PenumbraIpc penumbraApi { get; set; } = null!;
     [PluginService] public static DalamudPluginInterface pluginInterface { get; set; } = null!;
     [PluginService] public static IChatGui chatGui { get; private set; } = null!;
-    [PluginService] public static IClientState clientState { get; private set; } = null!;
     [PluginService] public static ICommandManager commandManager { get; private set; } = null!;
-    [PluginService] public static IObjectTable objectTable { get; private set; } = null!;
 }
