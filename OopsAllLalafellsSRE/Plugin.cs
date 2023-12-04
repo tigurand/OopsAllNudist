@@ -21,8 +21,7 @@ namespace OopsAllLalafellsSRE
         {
             Service.pluginInterface = pluginInterface;
 
-            var loadedConfig = pluginInterface.GetPluginConfig() as Configuration;
-            if (loadedConfig != null && loadedConfig.memorizeConfig)
+            if (pluginInterface.GetPluginConfig() is Configuration loadedConfig && loadedConfig.memorizeConfig)
             {
                 Service.configuration = loadedConfig;
             }
