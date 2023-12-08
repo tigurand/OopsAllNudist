@@ -45,7 +45,7 @@ namespace OopsAllLalafellsSRE
 
             Service.commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Opens OopsAllLalafellsSRE config menu."
+                HelpMessage = "Opens OopsAllLalafellsSRE config menu.\n/polala on = enable plugin.\n/polala off = disable plugin."
             });
         }
 
@@ -68,6 +68,20 @@ namespace OopsAllLalafellsSRE
 
         private void OnCommand(string command, string args)
         {
+            if (args == "on")
+            {
+                Service.configuration.enabled = true;
+                Service.configuration.Save();
+                Service.configWindow.InvokeConfigChanged();
+                return;
+            }
+            if (args == "off")
+            {
+                Service.configuration.enabled = false;
+                Service.configuration.Save();
+                Service.configWindow.InvokeConfigChanged();
+                return;
+            }
             Service.configWindow.IsOpen = true;
         }
 
