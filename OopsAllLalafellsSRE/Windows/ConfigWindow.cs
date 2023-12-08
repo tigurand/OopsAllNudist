@@ -75,4 +75,9 @@ internal class ConfigWindow : Window, IDisposable
             _ => Race.LALAFELL,
         };
     }
+
+    public void InvokeConfigChanged()
+    {
+        OnConfigChanged?.Invoke();
+    }
 }
