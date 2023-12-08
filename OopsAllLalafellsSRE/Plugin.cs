@@ -45,7 +45,7 @@ namespace OopsAllLalafellsSRE
 
             Service.commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Opens OopsAllLalafellsSRE config menu.\n/polala on = enable plugin.\n/polala off = disable plugin."
+                HelpMessage = "Opens OopsAllLalafellsSRE config menu."
             });
         }
 
