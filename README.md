@@ -1,14 +1,16 @@
 # OopsAllLalafellsSRE
-I WILL NOT LET THIS PLUGIN DIE AS LONG AS I LIVE Ars Magna#2472 ON DISCORD IF DEAD
 
-FFXIV Dalamud plugin to turn everyone into Lalafells
+Turn everyone around you into Lalafells (or other races!)
 
-Smol update by Ars Magna for to run in 6.1 - Also updated for 6.2 now 
+- Created by: Avaflow
+- Smol update by Ars Magna for to run in 6.2
+- Updated to 6.5 by Kelvin
 
-Add custom repo to Dalamud for use it if want while out of date, worksing real goodly
+## Usage
+Add `https://raw.githubusercontent.com/kelvin124124/CustomPlugins/main/pluginmaster.json` and `https://raw.githubusercontent.com/xivdev/Penumbra/master/repo.json` to list of custom repo under Experimental tab in dalamud settings.  
+Install and enable Penumbra and OopsAllLalafellsSRE.
 
-https://raw.githubusercontent.com/ars-magna/MyDalamudPlugins/master/plugins/pluginmaster.json
+## ⚠️ READ THIS ⚠️
 
-I am officially dead, if I ever play FFXIV again I'll update this but for now it is in the hands of the angels 
-It probably just needs to have the addresses in SigScanner (Under Plugin.cs) fixed and rebuilt but maybe needs other adaptations as dalamud matures more and more every day
-Have fun!
+- **Requirement**: This plugin requires [Penumbra](https://github.com/xivdev/Penumbra) (another Dalamud plugin) to be installed and active.
+- **Note**: DO NOT use this plugin to remove specific races.
