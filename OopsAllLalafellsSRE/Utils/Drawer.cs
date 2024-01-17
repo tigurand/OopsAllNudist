@@ -39,10 +39,10 @@ namespace OopsAllLalafellsSRE.Utils
 
             customData.Race = selectedRace;
             customData.Tribe = (byte)(((byte)selectedRace * 2) - (customData.Tribe % 2));
-            customData.Gender = selectedRace == Race.HROTHGAR ? (byte)0 : customData.Gender;
+            //customData.Gender = selectedRace == Race.HROTHGAR ? (byte)0 : customData.Gender;
             customData.FaceType %= 4;
             customData.ModelType %= 2;
-            customData.LipColor = selectedRace == Race.HROTHGAR ? (byte)((customData.LipColor % 5) + 1) : customData.LipColor;
+            //customData.LipColor = selectedRace == Race.HROTHGAR ? (byte)((customData.LipColor % 5) + 1) : customData.LipColor;
             customData.HairStyle = (byte)((customData.HairStyle % RaceMappings.RaceHairs[selectedRace]) + 1);
 
             Marshal.StructureToPtr(customData, customizePtr, true);
