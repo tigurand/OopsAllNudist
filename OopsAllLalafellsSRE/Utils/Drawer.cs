@@ -1,3 +1,4 @@
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Penumbra.Api.Enums;
 using System;
 using System.Runtime.InteropServices;
@@ -24,9 +25,17 @@ namespace OopsAllLalafellsSRE.Utils
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
         }
 
-        public static void OnCreatingCharacterBase(nint _, Guid _1, nint _2, nint customizePtr, nint _3)
+        public static void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint _3)
         {
             if (!Service.configuration.enabled) return;
+
+            // return if not a player character
+            unsafe
+            {
+                var gameObj = (GameObject*)gameObjectAddress;
+                if (gameObj->ObjectKind != (byte)ObjectKind.Pc) return;
+            }
+
             ChangeRace(customizePtr, Service.configuration.SelectedRace);
         }
 
