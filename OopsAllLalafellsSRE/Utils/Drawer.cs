@@ -9,9 +9,7 @@ namespace OopsAllLalafellsSRE.Utils
     {
         public Drawer()
         {
-#if DEBUG
             Plugin.OutputChatLine("OopsAllLalafellsSRE starting...");
-#endif
 
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             if (Service.configuration.enabled)
@@ -22,9 +20,7 @@ namespace OopsAllLalafellsSRE.Utils
 
         private static void RefreshAllPlayers()
         {
-#if DEBUG
             Plugin.OutputChatLine("Refreshing all players");
-#endif
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
         }
 

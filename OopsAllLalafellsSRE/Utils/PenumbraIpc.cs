@@ -10,18 +10,12 @@ namespace OopsAllLalafellsSRE.Utils
     internal class PenumbraIpc(DalamudPluginInterface pluginInterface) : IDisposable
     {
         private readonly RedrawAll redrawAll = new(pluginInterface);
-        private readonly RedrawObject redrawObject = new(pluginInterface);
         private readonly EventSubscriber<nint, Guid, nint, nint, nint> creatingCharacterBaseEvent =
             CreatingCharacterBase.Subscriber(pluginInterface, Drawer.OnCreatingCharacterBase);
 
         public void Dispose()
         {
             creatingCharacterBaseEvent.Dispose();
-        }
-
-        internal void RedrawObject(GameObject gameObject, RedrawType setting)
-        {
-            redrawObject.Invoke(gameObject.ObjectIndex, setting);
         }
 
         internal void RedrawAll(RedrawType setting)
