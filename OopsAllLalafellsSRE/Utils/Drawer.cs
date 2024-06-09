@@ -9,7 +9,9 @@ namespace OopsAllLalafellsSRE.Utils
     {
         public Drawer()
         {
+#if DEBUG
             Plugin.OutputChatLine("OopsAllLalafellsSRE starting...");
+#endif
 
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             if (Service.configuration.enabled)
@@ -20,11 +22,13 @@ namespace OopsAllLalafellsSRE.Utils
 
         private static void RefreshAllPlayers()
         {
+#if DEBUG
             Plugin.OutputChatLine("Refreshing all players");
+#endif
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
         }
 
-        public static void OnCreatingCharacterBase(nint _, string _1, nint _2, nint customizePtr, nint _3)
+        public static void OnCreatingCharacterBase(nint _, Guid _1, nint _2, nint customizePtr, nint _3)
         {
             if (!Service.configuration.enabled) return;
             ChangeRace(customizePtr, Service.configuration.SelectedRace);

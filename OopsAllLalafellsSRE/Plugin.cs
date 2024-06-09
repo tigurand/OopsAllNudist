@@ -34,7 +34,7 @@ namespace OopsAllLalafellsSRE
 
             _ = pluginInterface.Create<Service>();
             Service.plugin = this;
-            Service.penumbraApi = new PenumbraIpc();
+            Service.penumbraApi = new PenumbraIpc(pluginInterface);
             Service.configWindow = new ConfigWindow(this);
             WindowSystem.AddWindow(Service.configWindow);
 
@@ -60,10 +60,10 @@ namespace OopsAllLalafellsSRE
             Service.penumbraApi?.RedrawAll(RedrawType.Redraw);
 
             WindowSystem.RemoveAllWindows();
-            Service.configWindow.Dispose();
+
             Service.penumbraApi?.Dispose();
             Service.drawer?.Dispose();
-            Service.commandManager.RemoveHandler(CommandName);
+            Service.commandManager?.RemoveHandler(CommandName);
         }
 
         private void OnCommand(string command, string args)

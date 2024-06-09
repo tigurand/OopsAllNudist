@@ -7,7 +7,7 @@ using static OopsAllLalafellsSRE.Utils.Constant;
 
 namespace OopsAllLalafellsSRE.Windows;
 
-internal class ConfigWindow : Window, IDisposable
+internal class ConfigWindow : Window
 {
     private readonly Configuration configuration;
     private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera"];
@@ -25,16 +25,11 @@ internal class ConfigWindow : Window, IDisposable
         configuration = Service.configuration;
     }
 
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-    }
-
     public override void Draw()
     {
         // select race
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Target Race");
+        ImGui.TextUnformatted("Target Race");
         ImGui.SameLine();
         if (ImGui.Combo("###Race", ref selectedRaceIndex, race, race.Length))
         {
