@@ -2,7 +2,6 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Windowing;
-using Dalamud.IoC;
 using Dalamud.Plugin;
 using OopsAllLalafellsSRE.Utils;
 using OopsAllLalafellsSRE.Windows;
@@ -17,7 +16,7 @@ namespace OopsAllLalafellsSRE
 
         public WindowSystem WindowSystem { get; } = new("OopsAllLalafellsSRE");
 
-        public Plugin([RequiredVersion("1.0")] DalamudPluginInterface pluginInterface)
+        public Plugin(IDalamudPluginInterface pluginInterface)
         {
             Service.pluginInterface = pluginInterface;
 

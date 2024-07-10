@@ -1,4 +1,3 @@
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin;
 using Penumbra.Api.Enums;
 using Penumbra.Api.Helpers;
@@ -7,7 +6,7 @@ using System;
 
 namespace OopsAllLalafellsSRE.Utils
 {
-    internal class PenumbraIpc(DalamudPluginInterface pluginInterface) : IDisposable
+    internal class PenumbraIpc(IDalamudPluginInterface pluginInterface) : IDisposable
     {
         private readonly RedrawAll redrawAll = new(pluginInterface);
         private readonly EventSubscriber<nint, Guid, nint, nint, nint> creatingCharacterBaseEvent =
