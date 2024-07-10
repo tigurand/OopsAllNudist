@@ -1,4 +1,4 @@
-# OopsAllLalafellsSRE [![CodeFactor](https://www.codefactor.io/repository/github/kelvin124124/oopsalllalafellssre/badge)](https://www.codefactor.io/repository/github/kelvin124124/oopsalllalafellssre)
+# OopsAllLalafellsSRE
 
 Turn everyone around you into Lalafells (or other races!)
 
