@@ -1,6 +1,7 @@
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Penumbra.Api.Enums;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static OopsAllLalafellsSRE.Utils.Constant;
 
@@ -8,9 +9,12 @@ namespace OopsAllLalafellsSRE.Utils
 {
     internal class Drawer : IDisposable
     {
+        public static HashSet<string> NonNativeID = [];
+
         public Drawer()
         {
             Plugin.OutputChatLine("OopsAllLalafellsSRE starting...");
+
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             if (Service.configuration.enabled)
             {
@@ -18,45 +22,28 @@ namespace OopsAllLalafellsSRE.Utils
             }
         }
 
-        public void Dispose()
-        {
-            Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
-        }
-
         private static void RefreshAllPlayers()
         {
             Plugin.OutputChatLine("Refreshing all players");
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
+            Service.namePlateGui.RequestRedraw();
         }
 
-        public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _, nint _1, nint customizePtr, nint _2)
+        public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint _3)
         {
             var gameObj = (GameObject*)gameObjectAddress;
             if (gameObj->ObjectKind != ObjectKind.Pc) return;
 
             // remove HQ symbol if plugin is disabled
-            if (!Service.configuration.enabled)
-            {
-                RemoveHQSymbol(gameObj);
-                return;
-            }
+            if (!Service.configuration.enabled) return;
 
             // return if not player character
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
-            if (customData.Race == Race.UNKNOWN) return;
-
-            if (customData.Race == Service.configuration.SelectedRace && Service.configuration.nameHQ)
-            {
-                // add HQ symbol if player is the selected race
-                AddHQSymbol(gameObj);
+            if (customData.Race == Service.configuration.SelectedRace || customData.Race == Race.UNKNOWN)
                 return;
-            }
-            else
-            {
-                // remove HQ symbol and change the race
-                RemoveHQSymbol(gameObj);
-                ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
-            }
+
+            NonNativeID.Add(gameObj->NameString);
+            ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
         }
 
         private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace)
@@ -69,22 +56,9 @@ namespace OopsAllLalafellsSRE.Utils
             Marshal.StructureToPtr(customData, customizePtr, true);
         }
 
-        private static unsafe void AddHQSymbol(GameObject* gameObj)
+        public void Dispose()
         {
-            string nameStr = gameObj->NameString;
-            if (!nameStr.EndsWith(" \uE03C"))
-            {
-                gameObj->NameString = nameStr + " \uE03C";
-            }
-        }
-
-        private static unsafe void RemoveHQSymbol(GameObject* gameObj)
-        {
-            string nameStr = gameObj->NameString;
-            if (nameStr.EndsWith(" \uE03C"))
-            {
-                gameObj->NameString = nameStr.Replace(" \uE03C", string.Empty);
-            }
+            Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
         }
     }
 }
