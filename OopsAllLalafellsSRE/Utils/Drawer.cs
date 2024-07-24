@@ -29,36 +29,62 @@ namespace OopsAllLalafellsSRE.Utils
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
         }
 
-        public static void OnCreatingCharacterBase(nint gameObjectAddress, Guid _, nint _1, nint customizePtr, nint _2)
+        public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _, nint _1, nint customizePtr, nint _2)
         {
-            if (!Service.configuration.enabled) return;
+            var gameObj = (GameObject*)gameObjectAddress;
+            if (gameObj->ObjectKind != ObjectKind.Pc) return;
 
-            unsafe
+            // remove HQ symbol if plugin is disabled
+            if (!Service.configuration.enabled)
             {
-                var gameObj = (GameObject*)gameObjectAddress;
-                if (gameObj->ObjectKind == ObjectKind.Pc)
-                {
-                    ChangeRace(gameObj, customizePtr, Service.configuration.SelectedRace);
-                }
+                RemoveHQSymbol(gameObj);
+                return;
             }
-        }
 
-        private static unsafe void ChangeRace(GameObject* gameObj, nint customizePtr, Race selectedRace)
-        {
+            // return if not player character
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             if (customData.Race == Race.UNKNOWN) return;
 
-            if (Service.configuration.nameHQ && customData.Race == selectedRace)
+            if (customData.Race == Service.configuration.SelectedRace && Service.configuration.nameHQ)
             {
-                gameObj->NameString += "\uE03C";
+                // add HQ symbol if player is the selected race
+                AddHQSymbol(gameObj);
+                return;
             }
+            else
+            {
+                // remove HQ symbol and change the race
+                RemoveHQSymbol(gameObj);
+                ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
+            }
+        }
 
+        private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace)
+        {
             customData.Race = selectedRace;
             customData.Tribe = (byte)(((byte)selectedRace * 2) - (customData.Tribe % 2));
             customData.FaceType %= 4;
             customData.ModelType %= 2;
             customData.HairStyle = (byte)((customData.HairStyle % RaceMappings.RaceHairs[selectedRace]) + 1);
             Marshal.StructureToPtr(customData, customizePtr, true);
+        }
+
+        private static unsafe void AddHQSymbol(GameObject* gameObj)
+        {
+            string nameStr = gameObj->NameString;
+            if (!nameStr.EndsWith(" \uE03C"))
+            {
+                gameObj->NameString = nameStr + " \uE03C";
+            }
+        }
+
+        private static unsafe void RemoveHQSymbol(GameObject* gameObj)
+        {
+            string nameStr = gameObj->NameString;
+            if (nameStr.EndsWith(" \uE03C"))
+            {
+                gameObj->NameString = nameStr.Replace(" \uE03C", string.Empty);
+            }
         }
     }
 }
