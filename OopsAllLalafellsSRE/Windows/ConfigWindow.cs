@@ -62,8 +62,8 @@ internal class ConfigWindow : Window
             configuration.Save();
             OnConfigChanged?.Invoke();
         }
-        ImGui.TextUnformatted("Note: Changes of this config item will only be applied\nwhen the player model is reloaded.");
     }
+
     private static Race MapIndexToRace(int index)
     {
         return index switch
