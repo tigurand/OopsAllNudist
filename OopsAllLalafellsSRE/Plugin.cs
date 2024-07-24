@@ -36,6 +36,7 @@ namespace OopsAllLalafellsSRE
             WindowSystem.AddWindow(Service.configWindow);
 
             _ = pluginInterface.Create<Drawer>();
+            _ = pluginInterface.Create<Nameplate>();
 
             pluginInterface.UiBuilder.Draw += DrawUI;
             pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
