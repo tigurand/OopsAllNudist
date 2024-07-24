@@ -19,7 +19,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(275, 125);
+        Size = new Vector2(285, 200);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -53,6 +53,15 @@ internal class ConfigWindow : Window
             configuration.stayOn = _StayOn;
             configuration.Save();
         }
+
+        ImGui.Separator();
+        bool _NameHQ = configuration.nameHQ;
+        if (ImGui.Checkbox("Add HQ symbol to native lalafells\n(or other races)", ref _NameHQ))
+        {
+            configuration.nameHQ = _NameHQ;
+            configuration.Save();
+        }
+        ImGui.TextUnformatted("Note: Changes of this config item will only be applied\nwhen the player model is reloaded.");
     }
     private static Race MapIndexToRace(int index)
     {
