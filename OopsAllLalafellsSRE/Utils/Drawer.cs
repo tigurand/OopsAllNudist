@@ -11,12 +11,16 @@ namespace OopsAllLalafellsSRE.Utils
         public Drawer()
         {
             Plugin.OutputChatLine("OopsAllLalafellsSRE starting...");
-
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             if (Service.configuration.enabled)
             {
                 RefreshAllPlayers();
             }
+        }
+
+        public void Dispose()
+        {
+            Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
         }
 
         private static void RefreshAllPlayers()
@@ -25,39 +29,36 @@ namespace OopsAllLalafellsSRE.Utils
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
         }
 
-        public static void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint _3)
+        public static void OnCreatingCharacterBase(nint gameObjectAddress, Guid _, nint _1, nint customizePtr, nint _2)
         {
             if (!Service.configuration.enabled) return;
 
-            // return if not a player character
             unsafe
             {
                 var gameObj = (GameObject*)gameObjectAddress;
-                if (gameObj->ObjectKind != ObjectKind.Pc) return;
+                if (gameObj->ObjectKind == ObjectKind.Pc)
+                {
+                    ChangeRace(gameObj, customizePtr, Service.configuration.SelectedRace);
+                }
             }
-
-            ChangeRace(customizePtr, Service.configuration.SelectedRace);
         }
 
-        private static void ChangeRace(nint customizePtr, Race selectedRace)
+        private static unsafe void ChangeRace(GameObject* gameObj, nint customizePtr, Race selectedRace)
         {
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
+            if (customData.Race == Race.UNKNOWN) return;
 
-            if (customData.Race == selectedRace || customData.Race == Race.UNKNOWN)
-                return;
+            if (Service.configuration.nameHQ && customData.Race == selectedRace)
+            {
+                gameObj->NameString += "\uE03C";
+            }
 
             customData.Race = selectedRace;
             customData.Tribe = (byte)(((byte)selectedRace * 2) - (customData.Tribe % 2));
             customData.FaceType %= 4;
             customData.ModelType %= 2;
             customData.HairStyle = (byte)((customData.HairStyle % RaceMappings.RaceHairs[selectedRace]) + 1);
-
             Marshal.StructureToPtr(customData, customizePtr, true);
-        }
-
-        public void Dispose()
-        {
-            Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
         }
     }
 }

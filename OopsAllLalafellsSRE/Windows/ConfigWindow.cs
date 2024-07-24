@@ -47,11 +47,10 @@ internal class ConfigWindow : Window
             OnConfigChanged?.Invoke();
         }
 
-        // Memorize Option
-        bool _MemorizeConfig = configuration.memorizeConfig;
-        if (ImGui.Checkbox("Memorize Configuration", ref _MemorizeConfig))
+        bool _StayOn = configuration.stayOn;
+        if (ImGui.Checkbox("Stay on", ref _StayOn))
         {
-            configuration.memorizeConfig = _MemorizeConfig;
+            configuration.stayOn = _StayOn;
             configuration.Save();
         }
     }

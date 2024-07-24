@@ -11,7 +11,8 @@ namespace OopsAllLalafellsSRE
         public int Version { get; set; } = 0;
         public Race SelectedRace { get; set; } = Race.LALAFELL;
         public bool enabled { get; set; } = false;
-        public bool memorizeConfig { get; set; } = false;
+        public bool stayOn { get; set; } = false;
+        public bool nameHQ { get; set; } = true;
 
         // the below exist just to make saving less cumbersome
         [NonSerialized]

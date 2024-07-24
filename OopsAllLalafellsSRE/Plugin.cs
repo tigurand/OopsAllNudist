@@ -20,13 +20,11 @@ namespace OopsAllLalafellsSRE
         {
             Service.pluginInterface = pluginInterface;
 
-            if (pluginInterface.GetPluginConfig() is Configuration loadedConfig && loadedConfig.memorizeConfig)
+            Service.configuration = pluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+
+            if (!Service.configuration.stayOn)
             {
-                Service.configuration = loadedConfig;
-            }
-            else
-            {
-                Service.configuration = new Configuration();
+                Service.configuration.enabled = false;
             }
 
             Service.configuration.Initialize(pluginInterface);
