@@ -13,11 +13,10 @@ namespace OopsAllLalafellsSRE.Utils
 
         public Drawer()
         {
-            Plugin.OutputChatLine("OopsAllLalafellsSRE starting...");
-
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             if (Service.configuration.enabled)
             {
+                Plugin.OutputChatLine("OopsAllLalafellsSRE starting...");
                 RefreshAllPlayers();
             }
         }
