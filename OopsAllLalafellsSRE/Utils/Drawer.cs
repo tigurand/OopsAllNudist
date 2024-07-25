@@ -30,13 +30,12 @@ namespace OopsAllLalafellsSRE.Utils
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint _3)
         {
-            var gameObj = (GameObject*)gameObjectAddress;
-            if (gameObj->ObjectKind != ObjectKind.Pc) return;
-
-            // remove HQ symbol if plugin is disabled
             if (!Service.configuration.enabled) return;
 
             // return if not player character
+            var gameObj = (GameObject*)gameObjectAddress;
+            if (gameObj->ObjectKind != ObjectKind.Pc) return;
+
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             if (customData.Race == Service.configuration.SelectedRace || customData.Race == Race.UNKNOWN)
                 return;
