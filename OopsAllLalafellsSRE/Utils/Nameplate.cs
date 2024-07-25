@@ -1,5 +1,4 @@
 using Dalamud.Game.Gui.NamePlate;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 
 namespace OopsAllLalafellsSRE.Utils
 {
@@ -9,7 +8,7 @@ namespace OopsAllLalafellsSRE.Utils
         {
             Service.namePlateGui.OnNamePlateUpdate += (context, handlers) =>
             {
-                if (!Service.configuration.enabled)
+                if (!Service.configuration.enabled || !Service.configuration.nameHQ)
                     return;
 
                 foreach (var handler in handlers)
@@ -18,14 +17,13 @@ namespace OopsAllLalafellsSRE.Utils
                     {
                         unsafe
                         {
-                            nint? gameObjPtr = handler.GameObject?.Address;
-                            if (gameObjPtr == null)
-                                return;
+                            if (handler.PlayerCharacter == null) return;
 
-                            var gameObj = (GameObject*)gameObjPtr;
-                            if (Service.configuration.nameHQ && !Drawer.NonNativeID.Contains(gameObj->NameString))
+                            // if native lalafells
+                            if (!Drawer.NonNativeID.Contains(handler.PlayerCharacter.Name.TextValue))
                             {
-                                handler.NameParts.Text = $"{gameObj->NameString} \uE03C";
+                                // Plugin.OutputChatLine($"Adding HQ to {handler.PlayerCharacter.Name.TextValue}");
+                                handler.NameParts.Text = $"{handler.Name} \uE03C";
                             }
                         }
                     }

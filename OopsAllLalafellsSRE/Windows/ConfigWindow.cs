@@ -19,7 +19,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(285, 200);
+        Size = new Vector2(285, 160);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
