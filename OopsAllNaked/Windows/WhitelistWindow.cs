@@ -1,12 +1,12 @@
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
-using OopsAllLalafellsSRE.Utils;
+using OopsAllNaked.Utils;
 using System;
 using System.Numerics;
-using static OopsAllLalafellsSRE.Utils.Constant;
+using static OopsAllNaked.Utils.Constant;
 
-namespace OopsAllLalafellsSRE.Windows;
+namespace OopsAllNaked.Windows;
 
 internal class WhitelistWindow : Window
 {

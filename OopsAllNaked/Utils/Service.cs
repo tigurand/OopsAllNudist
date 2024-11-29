@@ -2,9 +2,9 @@ using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using OopsAllLalafellsSRE.Windows;
+using OopsAllNaked.Windows;
 
-namespace OopsAllLalafellsSRE.Utils;
+namespace OopsAllNaked.Utils;
 
 internal class Service
 {

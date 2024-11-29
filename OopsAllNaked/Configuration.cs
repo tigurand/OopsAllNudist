@@ -2,9 +2,9 @@ using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
 using System.Collections.Generic;
-using static OopsAllLalafellsSRE.Utils.Constant;
+using static OopsAllNaked.Utils.Constant;
 
-namespace OopsAllLalafellsSRE
+namespace OopsAllNaked
 {
     [Serializable]
     internal class Configuration : IPluginConfiguration
