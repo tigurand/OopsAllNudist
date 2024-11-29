@@ -33,10 +33,11 @@ namespace OopsAllLalafellsSRE
             Service.plugin = this;
             Service.penumbraApi = new PenumbraIpc(pluginInterface);
             Service.configWindow = new ConfigWindow(this);
+            Service.whitelistWindow = new WhitelistWindow(this);
             WindowSystem.AddWindow(Service.configWindow);
+            WindowSystem.AddWindow(Service.whitelistWindow);
 
             _ = pluginInterface.Create<Drawer>();
-            _ = pluginInterface.Create<Nameplate>();
 
             pluginInterface.UiBuilder.Draw += DrawUI;
             pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
@@ -61,7 +62,6 @@ namespace OopsAllLalafellsSRE
 
             Service.penumbraApi?.Dispose();
             Service.drawer?.Dispose();
-            Service.nameplate?.Dispose();
             Service.commandManager?.RemoveHandler(CommandName);
         }
 

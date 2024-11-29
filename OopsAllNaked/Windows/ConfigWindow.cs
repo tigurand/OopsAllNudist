@@ -1,4 +1,5 @@
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
 using ImGuiNET;
 using OopsAllLalafellsSRE.Utils;
 using System;
@@ -13,6 +14,13 @@ internal class ConfigWindow : Window
     private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera", "Keep Original Race"];
     private int selectedRaceIndex = 0;
     public event Action? OnConfigChanged;
+    public event Action<string>? OnConfigChangedSingleChar;
+
+    // proxy function so whitelist editor can reload a character too
+    internal void ReloadCharProxy(string charName)
+    {
+        OnConfigChangedSingleChar?.Invoke(charName);
+    }
 
     public ConfigWindow(Plugin plugin) : base(
         "OopsAllNaked Configuration Window",
@@ -133,16 +141,45 @@ internal class ConfigWindow : Window
             OnConfigChanged?.Invoke();
         }
 
-        /*
         ImGui.Separator();
-        bool _NameHQ = configuration.nameHQ;
-        if (ImGui.Checkbox("Add HQ symbol to native lalafells\n(or other races)", ref _NameHQ))
+
+        string? targetName = Service.targetManager.Target?.Name.TextValue;
+        bool targetIsWhitelisted = !targetName.IsNullOrEmpty() && configuration.IsWhitelisted(targetName);
+
+        ImGui.BeginDisabled(targetName.IsNullOrEmpty());
+
+        try
         {
-            configuration.nameHQ = _NameHQ;
-            configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (!targetIsWhitelisted)
+            {
+                if (ImGui.Button($"Add {targetName ?? "Target"} to Whitelist"))
+                {
+                    configuration.AddToWhitelist(targetName!);
+                    configuration.Save();
+                    OnConfigChangedSingleChar?.Invoke(targetName!);
+                }
+            }
+            else
+            {
+                if (ImGui.Button($"Remove {targetName ?? "Target"}"))
+                {
+                    configuration.RemoveFromWhitelist(targetName!);
+                    configuration.Save();
+                    OnConfigChangedSingleChar?.Invoke(targetName!);
+                }
+            }
         }
-        */
+        finally
+        {
+            ImGui.EndDisabled();
+        }
+
+        var n = configuration.Whitelist.Count;
+
+        if (ImGui.Button($"Edit Whitelist ({n})"))
+        {
+            Service.whitelistWindow.IsOpen = true;
+        }
     }
 
     private static Race MapIndexToRace(int index)
