@@ -28,7 +28,7 @@ namespace OopsAllLalafellsSRE.Utils
             Service.namePlateGui.RequestRedraw();
         }
 
-        public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint _3)
+        public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
         {
             if (!Service.configuration.enabled) return;
 
@@ -37,11 +37,29 @@ namespace OopsAllLalafellsSRE.Utils
             if (gameObj->ObjectKind != ObjectKind.Pc) return;
 
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
+            var equipData = (ulong*)equipPtr;
+
+            bool isSelf = false;
+
+            if (gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 200)
+                isSelf = true;
+
+            bool dontLala = Service.configuration.dontLalaSelf && isSelf;
+            bool dontStrip = Service.configuration.dontStripSelf && isSelf;
+
             if (customData.Race == Service.configuration.SelectedRace || customData.Race == Race.UNKNOWN)
+                dontLala = true;
+
+            if (dontLala && dontStrip)
                 return;
 
             NonNativeID.Add(gameObj->NameString);
-            ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
+
+            if (!dontLala && Service.configuration.SelectedRace != Race.UNKNOWN)
+                ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
+
+            //if (!dontStrip)
+                StripClothes(equipData, equipPtr);
         }
 
         private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace)
@@ -52,6 +70,20 @@ namespace OopsAllLalafellsSRE.Utils
             customData.ModelType %= 2;
             customData.HairStyle = (byte)((customData.HairStyle % RaceMappings.RaceHairs[selectedRace]) + 1);
             Marshal.StructureToPtr(customData, customizePtr, true);
+        }
+
+        private static unsafe void StripClothes(ulong* equipData, nint equipPtr)
+        {
+            if (Service.configuration.stripHats) equipData[0] = 0;
+            if (Service.configuration.stripBodies) equipData[1] = 0;
+            if (Service.configuration.stripGloves) equipData[2] = 0;
+            if (Service.configuration.stripLegs) equipData[3] = 0;
+            if (Service.configuration.stripBoots) equipData[4] = 0;
+            if (Service.configuration.stripAccessories)
+            {
+                for (int i = 6; i <= 9; ++i)
+                    equipData[i] = 0;
+            }
         }
 
         public void Dispose()

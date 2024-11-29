@@ -1,11 +1,12 @@
 {
     "Author": "Avaflow, Ars Magna, Kelvin",
-    "Name": "OopsAllLalafellsSRE",
-    "Punchline": "Turn everyone around you into Lalafells (or other races!)",
-    "Description": "Turn everyone around you into Lalafells (or other races!)\n/polala on = enable plugin.\n/polala off = disable plugin.",
-    "InternalName": "OopsAllLalafellsSRE",
+    "Name": "OopsAllNaked",
+    "Punchline": "Turn everyone around you into a nudist.",
+    "Description": "Turn everyone around you into a nudist.",
+    "InternalName": "OopsAllNaked",
     "ApplicableVersion": "any",
     "Tags": [
-        "lalafells"
+        "lalafells",
+        "nudism"
     ]
 }

@@ -10,16 +10,16 @@ namespace OopsAllLalafellsSRE.Windows;
 internal class ConfigWindow : Window
 {
     private readonly Configuration configuration;
-    private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera"];
+    private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera", "Keep Existing Race"];
     private int selectedRaceIndex = 0;
     public event Action? OnConfigChanged;
 
     public ConfigWindow(Plugin plugin) : base(
-        "OopsAllLalafellsSRE Configuration Window",
+        "OopsAllNaked Configuration Window",
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(285, 160);
+        Size = new Vector2(285, 380);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -55,6 +55,73 @@ internal class ConfigWindow : Window
         }
 
         ImGui.Separator();
+        bool _dontStripSelf = configuration.dontStripSelf;
+        if (ImGui.Checkbox("Don't strip self", ref _dontStripSelf))
+        {
+            configuration.dontStripSelf = _dontStripSelf;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        bool _dontLalaSelf = configuration.dontLalaSelf;
+        if (ImGui.Checkbox("Don't race swap self", ref _dontLalaSelf))
+        {
+            configuration.dontLalaSelf = _dontLalaSelf;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        ImGui.Separator();
+        bool _stripHats = configuration.stripHats;
+        if (ImGui.Checkbox("Strip Hats", ref _stripHats))
+        {
+            configuration.stripHats = _stripHats;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        bool _stripBodies = configuration.stripBodies;
+        if (ImGui.Checkbox("Strip Bodies", ref _stripBodies))
+        {
+            configuration.stripBodies = _stripBodies;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        bool _stripLegs = configuration.stripLegs;
+        if (ImGui.Checkbox("Strip Legs", ref _stripLegs))
+        {
+            configuration.stripLegs = _stripLegs;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        bool _stripGloves = configuration.stripGloves;
+        if (ImGui.Checkbox("Strip Gloves", ref _stripGloves))
+        {
+            configuration.stripGloves = _stripGloves;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        bool _stripBoots = configuration.stripBoots;
+        if (ImGui.Checkbox("Strip Boots", ref _stripBoots))
+        {
+            configuration.stripBoots = _stripBoots;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        bool _stripAccessories = configuration.stripAccessories;
+        if (ImGui.Checkbox("Strip Accessories", ref _stripAccessories))
+        {
+            configuration.stripAccessories = _stripAccessories;
+            configuration.Save();
+            OnConfigChanged?.Invoke();
+        }
+
+        /*
+        ImGui.Separator();
         bool _NameHQ = configuration.nameHQ;
         if (ImGui.Checkbox("Add HQ symbol to native lalafells\n(or other races)", ref _NameHQ))
         {
@@ -62,6 +129,7 @@ internal class ConfigWindow : Window
             configuration.Save();
             OnConfigChanged?.Invoke();
         }
+        */
     }
 
     private static Race MapIndexToRace(int index)
@@ -76,6 +144,7 @@ internal class ConfigWindow : Window
             5 => Race.AU_RA,
             6 => Race.HROTHGAR,
             7 => Race.VIERA,
+            8 => Race.UNKNOWN,
             _ => Race.LALAFELL,
         };
     }

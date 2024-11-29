@@ -6,6 +6,7 @@ namespace OopsAllLalafellsSRE.Utils
     {
         public Nameplate()
         {
+            /*
             Service.namePlateGui.OnNamePlateUpdate += (context, handlers) =>
             {
                 if (!Service.configuration.enabled || !Service.configuration.nameHQ)
@@ -29,6 +30,7 @@ namespace OopsAllLalafellsSRE.Utils
                     }
                 }
             };
+            */
         }
 
         public void Dispose() { }

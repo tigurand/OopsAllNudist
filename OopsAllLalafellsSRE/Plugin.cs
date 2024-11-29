@@ -11,8 +11,8 @@ namespace OopsAllLalafellsSRE
 {
     internal sealed class Plugin : IDalamudPlugin
     {
-        public static string Name => "OopsAllLalafellsSRE";
-        private const string CommandName = "/polala";
+        public static string Name => "OopsAllNaked";
+        private const string CommandName = "/naked";
 
         public WindowSystem WindowSystem { get; } = new("OopsAllLalafellsSRE");
 
@@ -43,13 +43,13 @@ namespace OopsAllLalafellsSRE
 
             Service.commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Opens OopsAllLalafellsSRE config menu."
+                HelpMessage = "Opens OopsAllNaked config menu."
             });
         }
 
         public static void OutputChatLine(SeString message)
         {
-            var sb = new SeStringBuilder().AddUiForeground("[OAL] ", 58).Append(message);
+            var sb = new SeStringBuilder().AddUiForeground("[OAN] ", 58).Append(message);
             Service.chatGui.Print(new XivChatEntry { Message = sb.BuiltString });
         }
 
