@@ -14,7 +14,7 @@ namespace OopsAllLalafellsSRE
         public static string Name => "OopsAllNaked";
         private const string CommandName = "/naked";
 
-        public WindowSystem WindowSystem { get; } = new("OopsAllLalafellsSRE");
+        public WindowSystem WindowSystem { get; } = new("OopsAllNaked");
 
         public Plugin(IDalamudPluginInterface pluginInterface)
         {

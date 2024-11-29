@@ -10,7 +10,7 @@ namespace OopsAllLalafellsSRE.Windows;
 internal class ConfigWindow : Window
 {
     private readonly Configuration configuration;
-    private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera", "Keep Existing Race"];
+    private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera", "Keep Original Race"];
     private int selectedRaceIndex = 0;
     public event Action? OnConfigChanged;
 
@@ -23,6 +23,19 @@ internal class ConfigWindow : Window
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
+
+        selectedRaceIndex = configuration.SelectedRace switch
+        {
+            Race.LALAFELL => 0,
+            Race.HYUR => 1,
+            Race.ELEZEN => 2,
+            Race.MIQOTE => 3,
+            Race.ROEGADYN => 4,
+            Race.AU_RA => 5,
+            Race.HROTHGAR => 6,
+            Race.VIERA => 7,
+            _ => 8
+        };
     }
 
     public override void Draw()
