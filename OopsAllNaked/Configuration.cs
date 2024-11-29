@@ -1,6 +1,7 @@
 using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
+using System.Collections.Generic;
 using static OopsAllLalafellsSRE.Utils.Constant;
 
 namespace OopsAllLalafellsSRE
@@ -24,6 +25,8 @@ namespace OopsAllLalafellsSRE
         public bool stripBoots { get; set; } = true;
         public bool stripAccessories { get; set; } = true;
 
+        public SortedSet<string> Whitelist { get; set; } = new(StringComparer.Ordinal);
+
         // the below exist just to make saving less cumbersome
         [NonSerialized]
         private IDalamudPluginInterface? pluginInterface;
@@ -36,6 +39,21 @@ namespace OopsAllLalafellsSRE
         public void Save()
         {
             pluginInterface!.SavePluginConfig(this);
+        }
+
+        public void AddToWhitelist(string charName)
+        {
+            Whitelist.Add(charName);
+        }
+
+        public void RemoveFromWhitelist(string charName)
+        {
+            Whitelist.Remove(charName);
+        }
+
+        public bool IsWhitelisted(string charName)
+        {
+            return Whitelist.Contains(charName);
         }
     }
 }

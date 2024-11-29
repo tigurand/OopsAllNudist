@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Penumbra.Api.Enums;
 using System;
@@ -9,11 +10,10 @@ namespace OopsAllLalafellsSRE.Utils
 {
     internal class Drawer : IDisposable
     {
-        public static HashSet<string> NonNativeID = [];
-
         public Drawer()
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
+            Service.configWindow.OnConfigChangedSingleChar += RefreshOnePlayer;
             if (Service.configuration.enabled)
             {
                 Plugin.OutputChatLine("OopsAllNaked starting...");
@@ -25,7 +25,26 @@ namespace OopsAllLalafellsSRE.Utils
         {
             Plugin.OutputChatLine("Refreshing all players");
             Service.penumbraApi.RedrawAll(RedrawType.Redraw);
-            Service.namePlateGui.RequestRedraw();
+        }
+
+
+        private static void RefreshOnePlayer(string charName)
+        {
+            int objectIndex = -1;
+
+            foreach (var obj in Service.objectTable)
+            {
+                if (!obj.IsValid()) continue;
+                if (obj is not ICharacter) continue;
+                if (obj.Name.TextValue != charName) continue;
+                objectIndex = obj.ObjectIndex;
+                break;
+            }
+
+            if (objectIndex == -1)
+                return;
+
+            Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
         }
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
@@ -39,6 +58,8 @@ namespace OopsAllLalafellsSRE.Utils
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             var equipData = (ulong*)equipPtr;
 
+            var charName = gameObj->NameString;
+
             bool isSelf = false;
 
             if (gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201)
@@ -47,13 +68,14 @@ namespace OopsAllLalafellsSRE.Utils
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
             bool dontStrip = Service.configuration.dontStripSelf && isSelf;
 
+            if (Service.configuration.IsWhitelisted(charName))
+                return;
+
             if (customData.Race == Service.configuration.SelectedRace || customData.Race == Race.UNKNOWN)
                 dontLala = true;
 
             if (dontLala && dontStrip)
                 return;
-
-            NonNativeID.Add(gameObj->NameString);
 
             if (!dontLala && Service.configuration.SelectedRace != Race.UNKNOWN)
                 ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
@@ -89,6 +111,7 @@ namespace OopsAllLalafellsSRE.Utils
         public void Dispose()
         {
             Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
+            Service.configWindow.OnConfigChangedSingleChar -= RefreshOnePlayer;
         }
     }
 }
