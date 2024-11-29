@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.Objects.Types;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Penumbra.Api.Enums;
 using System;
@@ -24,12 +25,25 @@ namespace OopsAllLalafellsSRE.Utils
         private static void RefreshAllPlayers()
         {
             Plugin.OutputChatLine("Refreshing all players");
-            Service.penumbraApi.RedrawAll(RedrawType.Redraw);
-        }
 
+            foreach (var obj in Service.objectTable)
+            {
+                if (!obj.IsValid()) continue;
+                if (obj is not ICharacter) continue;
+                if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
+
+                bool isSelf = obj.ObjectIndex == 0 || obj.ObjectIndex == 201;
+                if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
+
+                Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
+            }
+        }
 
         private static void RefreshOnePlayer(string charName)
         {
+            if (!Service.configuration.enabled)
+                return;
+
             int objectIndex = -1;
 
             foreach (var obj in Service.objectTable)
@@ -103,7 +117,7 @@ namespace OopsAllLalafellsSRE.Utils
             if (Service.configuration.stripBoots) equipData[4] = 0;
             if (Service.configuration.stripAccessories)
             {
-                for (int i = 6; i <= 9; ++i)
+                for (int i = 5; i <= 9; ++i)
                     equipData[i] = 0;
             }
         }

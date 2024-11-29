@@ -56,7 +56,8 @@ internal class ConfigWindow : Window
         {
             configuration.SelectedRace = MapIndexToRace(selectedRaceIndex);
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
         }
 
         // Enabled
@@ -81,7 +82,8 @@ internal class ConfigWindow : Window
         {
             configuration.dontStripSelf = _dontStripSelf;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled && Service.clientState.LocalPlayer != null)
+                OnConfigChangedSingleChar?.Invoke(Service.clientState.LocalPlayer.Name.TextValue);
         }
 
         bool _dontLalaSelf = configuration.dontLalaSelf;
@@ -89,7 +91,8 @@ internal class ConfigWindow : Window
         {
             configuration.dontLalaSelf = _dontLalaSelf;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled && Service.clientState.LocalPlayer != null)
+                OnConfigChangedSingleChar?.Invoke(Service.clientState.LocalPlayer.Name.TextValue);
         }
 
         ImGui.Separator();
@@ -98,7 +101,8 @@ internal class ConfigWindow : Window
         {
             configuration.stripHats = _stripHats;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
         }
 
         bool _stripBodies = configuration.stripBodies;
@@ -106,7 +110,8 @@ internal class ConfigWindow : Window
         {
             configuration.stripBodies = _stripBodies;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
         }
 
         bool _stripLegs = configuration.stripLegs;
@@ -114,7 +119,8 @@ internal class ConfigWindow : Window
         {
             configuration.stripLegs = _stripLegs;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
         }
 
         bool _stripGloves = configuration.stripGloves;
@@ -122,7 +128,8 @@ internal class ConfigWindow : Window
         {
             configuration.stripGloves = _stripGloves;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
         }
 
         bool _stripBoots = configuration.stripBoots;
@@ -130,7 +137,8 @@ internal class ConfigWindow : Window
         {
             configuration.stripBoots = _stripBoots;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
         }
 
         bool _stripAccessories = configuration.stripAccessories;
@@ -138,7 +146,8 @@ internal class ConfigWindow : Window
         {
             configuration.stripAccessories = _stripAccessories;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
         }
 
         ImGui.Separator();
