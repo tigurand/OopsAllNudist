@@ -3,11 +3,11 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using OopsAllLalafellsSRE.Utils;
-using OopsAllLalafellsSRE.Windows;
+using OopsAllNaked.Utils;
+using OopsAllNaked.Windows;
 using Penumbra.Api.Enums;
 
-namespace OopsAllLalafellsSRE
+namespace OopsAllNaked
 {
     internal sealed class Plugin : IDalamudPlugin
     {

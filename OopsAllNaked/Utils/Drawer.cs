@@ -5,9 +5,9 @@ using Penumbra.Api.Enums;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using static OopsAllLalafellsSRE.Utils.Constant;
+using static OopsAllNaked.Utils.Constant;
 
-namespace OopsAllLalafellsSRE.Utils
+namespace OopsAllNaked.Utils
 {
     internal class Drawer : IDisposable
     {
