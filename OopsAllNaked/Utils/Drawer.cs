@@ -16,7 +16,7 @@ namespace OopsAllLalafellsSRE.Utils
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             if (Service.configuration.enabled)
             {
-                Plugin.OutputChatLine("OopsAllLalafellsSRE starting...");
+                Plugin.OutputChatLine("OopsAllNaked starting...");
                 RefreshAllPlayers();
             }
         }
@@ -41,7 +41,7 @@ namespace OopsAllLalafellsSRE.Utils
 
             bool isSelf = false;
 
-            if (gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 200)
+            if (gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201)
                 isSelf = true;
 
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
@@ -58,7 +58,7 @@ namespace OopsAllLalafellsSRE.Utils
             if (!dontLala && Service.configuration.SelectedRace != Race.UNKNOWN)
                 ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
 
-            //if (!dontStrip)
+            if (!dontStrip)
                 StripClothes(equipData, equipPtr);
         }
 
