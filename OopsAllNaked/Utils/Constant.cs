@@ -1651,7 +1651,7 @@ namespace OopsAllNaked.Utils
                     (Race.LALAFELL, _) => 11,
                     (Race.AU_RA, _) => 13,
                     (Race.HROTHGAR, _) => 15,
-                    (Race.VIERA, _) => 15,
+                    (Race.VIERA, _) => 17,
                     _ => 1,
                 } + (gender == Gender.FEMALE ? 1 : 0)) * 100 + 1;
 
@@ -1691,6 +1691,8 @@ namespace OopsAllNaked.Utils
             [FieldOffset((int)CustomizeIndex.FaceType)] public byte FaceType;
             [FieldOffset((int)CustomizeIndex.HairStyle)] public byte HairStyle;
             [FieldOffset((int)CustomizeIndex.FaceFeatures)] public byte FaceFeatures;
+            [FieldOffset((int)CustomizeIndex.LipColor)] public byte LipColor;
+            [FieldOffset((int)CustomizeIndex.RaceFeatureType)] public byte RaceFeatureType;
         }
     }
 }
