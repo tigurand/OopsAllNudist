@@ -85,26 +85,47 @@ namespace OopsAllNaked.Utils
             if (Service.configuration.IsWhitelisted(charName))
                 return;
 
-            if (customData.Race == Service.configuration.SelectedRace || customData.Race == Race.UNKNOWN)
-                dontLala = true;
-
             if (dontLala && dontStrip)
                 return;
 
-            if (!dontLala && Service.configuration.SelectedRace != Race.UNKNOWN)
-                ChangeRace(customData, customizePtr, Service.configuration.SelectedRace);
+            if (!dontLala)
+                ChangeRace(customData, customizePtr, Service.configuration.SelectedRace, Service.configuration.SelectedGender);
 
             if (!dontStrip)
                 StripClothes(equipData, equipPtr);
         }
 
-        private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace)
+        private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace, Gender selectedGender)
         {
-            customData.Race = selectedRace;
-            customData.Tribe = (byte)(((byte)selectedRace * 2) - (customData.Tribe % 2));
-            customData.FaceType %= 4;
-            customData.ModelType %= 2;
-            customData.HairStyle = (byte)((customData.HairStyle % RaceMappings.RaceHairs[selectedRace]) + 1);
+            bool raceChange = (Service.configuration.SelectedRace != Race.UNKNOWN && customData.Race != Service.configuration.SelectedRace);
+            bool sexChange = (Service.configuration.SelectedGender != Gender.UNKNOWN && customData.Gender != Service.configuration.SelectedGender);
+
+            if (Service.configuration.SelectedRace != Race.UNKNOWN && Service.configuration.SelectedClan != Clan.UNKNOWN)
+                raceChange = true;
+
+            if (raceChange)
+            {
+                var clan = (Service.configuration.SelectedClan == Clan.UNKNOWN) ? (byte)(customData.Tribe % 2) : (byte)Service.configuration.SelectedClan;
+                customData.Tribe = (byte)(((byte)selectedRace * 2) - 1 + clan);
+                customData.Race = selectedRace;
+                customData.FaceType %= 4;
+                customData.ModelType = clan;
+            }
+
+            if (sexChange)
+            {
+                customData.Gender = selectedGender;
+            }
+
+            if (raceChange || sexChange)
+            {
+                customData.HairStyle = (byte)((customData.HairStyle % RaceMappings.RaceHairs[selectedRace]) + 1);
+
+                // Female hrothgar hair IDs start from 9
+                if (customData.Race == Race.HROTHGAR && customData.Gender == Gender.FEMALE)
+                    customData.HairStyle += 8;
+            }
+
             Marshal.StructureToPtr(customData, customizePtr, true);
         }
 

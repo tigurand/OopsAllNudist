@@ -19,6 +19,20 @@ namespace OopsAllNaked.Utils
             VIERA = 8
         }
 
+        public enum Gender : byte
+        {
+            UNKNOWN = 0,
+            FEMALE = 1,
+            MALE = 2
+        }
+
+        public enum Clan : byte
+        {
+            CLAN0 = 0,
+            CLAN1 = 1,
+            UNKNOWN = 255
+        }
+
         public class RaceMappings
         {
             public static readonly Dictionary<Race, int> RaceHairs = new()
@@ -38,6 +52,7 @@ namespace OopsAllNaked.Utils
         public struct CharaCustomizeData
         {
             [FieldOffset((int)CustomizeIndex.Race)] public Race Race;
+            [FieldOffset((int)CustomizeIndex.Gender)] public Gender Gender;
             [FieldOffset((int)CustomizeIndex.ModelType)] public byte ModelType;
             [FieldOffset((int)CustomizeIndex.Tribe)] public byte Tribe;
             [FieldOffset((int)CustomizeIndex.FaceType)] public byte FaceType;

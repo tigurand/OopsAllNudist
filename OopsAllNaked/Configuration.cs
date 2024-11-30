@@ -11,6 +11,8 @@ namespace OopsAllNaked
     {
         public int Version { get; set; } = 0;
         public Race SelectedRace { get; set; } = Race.UNKNOWN;
+        public Gender SelectedGender { get; set; } = Gender.UNKNOWN;
+        public Clan SelectedClan { get; set; } = Clan.UNKNOWN;
         public bool enabled { get; set; } = false;
         public bool stayOn { get; set; } = false;
         public bool nameHQ { get; set; } = false;
