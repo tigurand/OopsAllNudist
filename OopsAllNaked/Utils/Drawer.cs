@@ -119,11 +119,7 @@ namespace OopsAllNaked.Utils
 
             if (raceChange || sexChange)
             {
-                customData.HairStyle = (byte)((customData.HairStyle % RaceMappings.RaceHairs[selectedRace]) + 1);
-
-                // Female hrothgar hair IDs start from 9
-                if (customData.Race == Race.HROTHGAR && customData.Gender == Gender.FEMALE)
-                    customData.HairStyle += 8;
+                customData.HairStyle = (byte)RaceMappings.SelectHairFor(customData.Race, customData.Gender, (Clan)customData.ModelType, customData.HairStyle);
             }
 
             Marshal.StructureToPtr(customData, customizePtr, true);
