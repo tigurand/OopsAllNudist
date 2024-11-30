@@ -15,7 +15,6 @@ namespace OopsAllNaked
         public Clan SelectedClan { get; set; } = Clan.UNKNOWN;
         public bool enabled { get; set; } = false;
         public bool stayOn { get; set; } = false;
-        public bool nameHQ { get; set; } = false;
 
         public bool dontStripSelf { get; set; } = false;
         public bool dontLalaSelf { get; set; } = false;
@@ -26,6 +25,8 @@ namespace OopsAllNaked
         public bool stripGloves { get; set; } = true;
         public bool stripBoots { get; set; } = true;
         public bool stripAccessories { get; set; } = true;
+
+        public bool empLegs { get; set; } = false;
 
         public SortedSet<string> Whitelist { get; set; } = new(StringComparer.Ordinal);
 

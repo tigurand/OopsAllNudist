@@ -31,7 +31,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(285, 440);
+        Size = new Vector2(285, 410);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -64,6 +64,16 @@ internal class ConfigWindow : Window
         };
     }
 
+    private static void Tooltip(string text)
+    {
+        if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextUnformatted(text);
+            ImGui.EndTooltip();
+        }
+    }
+
     public override void Draw()
     {
         // select race
@@ -73,6 +83,11 @@ internal class ConfigWindow : Window
         if (ImGui.Combo("###Race", ref selectedRaceIndex, race, race.Length))
         {
             configuration.SelectedRace = MapIndexToRace(selectedRaceIndex);
+            if (configuration.SelectedRace == Race.UNKNOWN)
+            {
+                configuration.SelectedClan = Clan.UNKNOWN;
+                selectedClanIndex = 2;
+            }
             configuration.Save();
             if (configuration.enabled)
                 OnConfigChanged?.Invoke();
@@ -97,22 +112,30 @@ internal class ConfigWindow : Window
                 OnConfigChanged?.Invoke();
         }
         ImGui.EndDisabled();
+        Tooltip("e.g. 0 = Midlander, 1 = Highlander");
 
         // Enabled
         bool _Enabled = configuration.enabled;
         if (ImGui.Checkbox("Enable", ref _Enabled))
         {
             configuration.enabled = _Enabled;
+            if (configuration.enabled == false)
+                configuration.stayOn = false;
             configuration.Save();
             OnConfigChanged?.Invoke();
         }
 
+        ImGui.BeginDisabled(!configuration.enabled);
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(150.0f);
         bool _StayOn = configuration.stayOn;
         if (ImGui.Checkbox("Stay on", ref _StayOn))
         {
             configuration.stayOn = _StayOn;
             configuration.Save();
         }
+        Tooltip("Enable when plugin loads");
+        ImGui.EndDisabled();
 
         ImGui.Separator();
         bool _dontStripSelf = configuration.dontStripSelf;
@@ -160,6 +183,20 @@ internal class ConfigWindow : Window
             if (configuration.enabled)
                 OnConfigChanged?.Invoke();
         }
+
+        ImGui.BeginDisabled(!configuration.stripLegs);
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(150.0f);
+        bool _empLegs = configuration.empLegs;
+        if (ImGui.Checkbox("Emperor's", ref _empLegs))
+        {
+            configuration.empLegs = _empLegs;
+            configuration.Save();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
+        }
+        Tooltip("Use Emperor's New Legs");
+        ImGui.EndDisabled();
 
         bool _stripGloves = configuration.stripGloves;
         if (ImGui.Checkbox("Strip Gloves", ref _stripGloves))

@@ -1690,6 +1690,7 @@ namespace OopsAllNaked.Utils
             [FieldOffset((int)CustomizeIndex.Tribe)] public byte Tribe;
             [FieldOffset((int)CustomizeIndex.FaceType)] public byte FaceType;
             [FieldOffset((int)CustomizeIndex.HairStyle)] public byte HairStyle;
+            [FieldOffset((int)CustomizeIndex.FaceFeatures)] public byte FaceFeatures;
         }
     }
 }
