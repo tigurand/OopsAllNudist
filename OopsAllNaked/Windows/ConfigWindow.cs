@@ -17,7 +17,7 @@ internal class ConfigWindow : Window
     private int selectedRaceIndex = 0;
     private int selectedGenderIndex = 0;
     private int selectedClanIndex = 0;
-    public event Action? OnConfigChanged;
+    public event Action<bool>? OnConfigChanged;
     public event Action<string>? OnConfigChangedSingleChar;
 
     // proxy function so whitelist editor can reload a character too
@@ -31,7 +31,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(285, 410);
+        Size = new Vector2(285, 450);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -90,7 +90,7 @@ internal class ConfigWindow : Window
             }
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
         ImGui.TextUnformatted("Target Sex");
         ImGui.SameLine();
@@ -99,20 +99,20 @@ internal class ConfigWindow : Window
             configuration.SelectedGender = MapIndexToGender(selectedGenderIndex);
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
         ImGui.BeginDisabled(selectedRaceIndex == 8);
         ImGui.TextUnformatted("Target Clan");
+        Tooltip("e.g. 0 = Midlander, 1 = Highlander");
         ImGui.SameLine();
         if (ImGui.Combo("###Clan", ref selectedClanIndex, clan, clan.Length))
         {
             configuration.SelectedClan = MapIndexToClan(selectedClanIndex);
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
         ImGui.EndDisabled();
-        Tooltip("e.g. 0 = Midlander, 1 = Highlander");
 
         // Enabled
         bool _Enabled = configuration.enabled;
@@ -122,7 +122,7 @@ internal class ConfigWindow : Window
             if (configuration.enabled == false)
                 configuration.stayOn = false;
             configuration.Save();
-            OnConfigChanged?.Invoke();
+            InvokeConfigChanged();
         }
 
         ImGui.BeginDisabled(!configuration.enabled);
@@ -138,23 +138,72 @@ internal class ConfigWindow : Window
         ImGui.EndDisabled();
 
         ImGui.Separator();
-        bool _dontStripSelf = configuration.dontStripSelf;
-        if (ImGui.Checkbox("Don't strip self", ref _dontStripSelf))
+        ImGui.Text("Apply clothing changes to:");
+        ImGui.SetCursorPosX(20.0f);
+        bool _StripSelf = !configuration.dontStripSelf;
+        if (ImGui.Checkbox("Self##dontStripSelf", ref _StripSelf))
         {
-            configuration.dontStripSelf = _dontStripSelf;
+            configuration.dontStripSelf = !_StripSelf;
             configuration.Save();
             if (configuration.enabled && Service.clientState.LocalPlayer != null)
                 OnConfigChangedSingleChar?.Invoke(Service.clientState.LocalPlayer.Name.TextValue);
         }
 
-        bool _dontLalaSelf = configuration.dontLalaSelf;
-        if (ImGui.Checkbox("Don't race/sex change self", ref _dontLalaSelf))
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(100.0f);
+        bool _StripPC = !configuration.dontStripPC;
+        if (ImGui.Checkbox("PCs##dontStripPC", ref _StripPC))
         {
-            configuration.dontLalaSelf = _dontLalaSelf;
+            configuration.dontStripPC = !_StripPC;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(180.0f);
+        bool _StripNPC = !configuration.dontStripNPC;
+        if (ImGui.Checkbox("NPCs##dontStripNPC", ref _StripNPC))
+        {
+            configuration.dontStripNPC = !_StripNPC;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+
+        ImGui.Text("Apply race/sex changes to:");
+        ImGui.SetCursorPosX(20.0f);
+        bool _LalaSelf = !configuration.dontLalaSelf;
+        if (ImGui.Checkbox("Self##dontLalaSelf", ref _LalaSelf))
+        {
+            configuration.dontLalaSelf = !_LalaSelf;
             configuration.Save();
             if (configuration.enabled && Service.clientState.LocalPlayer != null)
                 OnConfigChangedSingleChar?.Invoke(Service.clientState.LocalPlayer.Name.TextValue);
         }
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(100.0f);
+        bool _LalaPC = !configuration.dontLalaPC;
+        if (ImGui.Checkbox("PCs##dontLalaPC", ref _LalaPC))
+        {
+            configuration.dontLalaPC = !_LalaPC;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(180.0f);
+        bool _LalaNPC = !configuration.dontLalaNPC;
+        if (ImGui.Checkbox("NPCs##dontLalaNPC", ref _LalaNPC))
+        {
+            configuration.dontLalaNPC = !_LalaNPC;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+        Tooltip("Warning: Altering NPCs will cause animation issues.");
 
         ImGui.Separator();
         bool _stripHats = configuration.stripHats;
@@ -163,7 +212,7 @@ internal class ConfigWindow : Window
             configuration.stripHats = _stripHats;
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
 
         bool _stripBodies = configuration.stripBodies;
@@ -172,7 +221,7 @@ internal class ConfigWindow : Window
             configuration.stripBodies = _stripBodies;
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
 
         bool _stripLegs = configuration.stripLegs;
@@ -181,7 +230,7 @@ internal class ConfigWindow : Window
             configuration.stripLegs = _stripLegs;
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
 
         ImGui.BeginDisabled(!configuration.stripLegs);
@@ -193,7 +242,7 @@ internal class ConfigWindow : Window
             configuration.empLegs = _empLegs;
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
         Tooltip("Use Emperor's New Legs");
         ImGui.EndDisabled();
@@ -204,7 +253,7 @@ internal class ConfigWindow : Window
             configuration.stripGloves = _stripGloves;
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
 
         bool _stripBoots = configuration.stripBoots;
@@ -213,7 +262,7 @@ internal class ConfigWindow : Window
             configuration.stripBoots = _stripBoots;
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
 
         bool _stripAccessories = configuration.stripAccessories;
@@ -222,7 +271,7 @@ internal class ConfigWindow : Window
             configuration.stripAccessories = _stripAccessories;
             configuration.Save();
             if (configuration.enabled)
-                OnConfigChanged?.Invoke();
+                InvokeConfigChanged();
         }
 
         ImGui.Separator();
@@ -302,8 +351,8 @@ internal class ConfigWindow : Window
         };
     }
 
-    public void InvokeConfigChanged()
+    public void InvokeConfigChanged(bool force = false)
     {
-        OnConfigChanged?.Invoke();
+        OnConfigChanged?.Invoke(force);
     }
 }

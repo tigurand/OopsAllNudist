@@ -1,6 +1,8 @@
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using Penumbra.Api.Enums;
 using System;
 using System.Collections.Generic;
@@ -18,11 +20,11 @@ namespace OopsAllNaked.Utils
             if (Service.configuration.enabled)
             {
                 Plugin.OutputChatLine("OopsAllNaked starting...");
-                RefreshAllPlayers();
+                RefreshAllPlayers(false);
             }
         }
 
-        private static void RefreshAllPlayers()
+        private static void RefreshAllPlayers(bool force)
         {
             Plugin.OutputChatLine("Refreshing all players");
 
@@ -32,8 +34,11 @@ namespace OopsAllNaked.Utils
                 if (obj is not ICharacter) continue;
                 if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
+                bool isPc = obj is IPlayerCharacter;
                 bool isSelf = obj.ObjectIndex == 0 || obj.ObjectIndex == 201;
                 if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
+                if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
+                if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
 
                 Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
             }
@@ -65,22 +70,29 @@ namespace OopsAllNaked.Utils
         {
             if (!Service.configuration.enabled) return;
 
-            // return if not player character
             var gameObj = (GameObject*)gameObjectAddress;
-            if (gameObj->ObjectKind != ObjectKind.Pc) return;
-
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             var equipData = (ulong*)equipPtr;
-
             var charName = gameObj->NameString;
 
-            bool isSelf = false;
+            bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
+            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201;
 
-            if (gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201)
-                isSelf = true;
+            // Avoid some broken conversions
+            if (customData.ModelType == 4 || customData.Race == Race.UNKNOWN)
+                return;
+
+            if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc)
+                return;
 
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
             bool dontStrip = Service.configuration.dontStripSelf && isSelf;
+
+            dontLala |= Service.configuration.dontLalaPC && isPc && !isSelf;
+            dontLala |= Service.configuration.dontLalaNPC && !isPc;
+
+            dontStrip |= Service.configuration.dontStripPC && isPc && !isSelf;
+            dontStrip |= Service.configuration.dontStripNPC && !isPc;
 
             if (Service.configuration.IsWhitelisted(charName))
                 return;

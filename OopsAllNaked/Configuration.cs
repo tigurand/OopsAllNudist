@@ -17,7 +17,11 @@ namespace OopsAllNaked
         public bool stayOn { get; set; } = false;
 
         public bool dontStripSelf { get; set; } = false;
+        public bool dontStripPC { get; set; } = false;
+        public bool dontStripNPC { get; set; } = false;
         public bool dontLalaSelf { get; set; } = false;
+        public bool dontLalaPC { get; set; } = false;
+        public bool dontLalaNPC { get; set; } = true;
 
         public bool stripHats { get; set; } = true;
         public bool stripBodies { get; set; } = true;
