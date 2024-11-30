@@ -12,7 +12,11 @@ internal class ConfigWindow : Window
 {
     private readonly Configuration configuration;
     private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera", "Keep Original Race"];
+    private readonly string[] gender = ["Female", "Male", "Keep Original Sex"];
+    private readonly string[] clan = ["0", "1", "Automatic Clan"];
     private int selectedRaceIndex = 0;
+    private int selectedGenderIndex = 0;
+    private int selectedClanIndex = 0;
     public event Action? OnConfigChanged;
     public event Action<string>? OnConfigChangedSingleChar;
 
@@ -27,7 +31,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(285, 380);
+        Size = new Vector2(285, 500);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -44,6 +48,20 @@ internal class ConfigWindow : Window
             Race.VIERA => 7,
             _ => 8
         };
+
+        selectedGenderIndex = configuration.SelectedGender switch
+        {
+            Gender.FEMALE => 0,
+            Gender.MALE => 1,
+            _ => 2
+        };
+
+        selectedClanIndex = configuration.SelectedClan switch
+        {
+            Clan.CLAN0 => 0,
+            Clan.CLAN1 => 1,
+            _ => 2
+        };
     }
 
     public override void Draw()
@@ -59,6 +77,26 @@ internal class ConfigWindow : Window
             if (configuration.enabled)
                 OnConfigChanged?.Invoke();
         }
+        ImGui.TextUnformatted("Target Sex");
+        ImGui.SameLine();
+        if (ImGui.Combo("###Sex", ref selectedGenderIndex, gender, gender.Length))
+        {
+            configuration.SelectedGender = MapIndexToGender(selectedGenderIndex);
+            configuration.Save();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
+        }
+        ImGui.BeginDisabled(selectedRaceIndex == 8);
+        ImGui.TextUnformatted("Target Clan");
+        ImGui.SameLine();
+        if (ImGui.Combo("###Clan", ref selectedClanIndex, clan, clan.Length))
+        {
+            configuration.SelectedClan = MapIndexToClan(selectedClanIndex);
+            configuration.Save();
+            if (configuration.enabled)
+                OnConfigChanged?.Invoke();
+        }
+        ImGui.EndDisabled();
 
         // Enabled
         bool _Enabled = configuration.enabled;
@@ -87,7 +125,7 @@ internal class ConfigWindow : Window
         }
 
         bool _dontLalaSelf = configuration.dontLalaSelf;
-        if (ImGui.Checkbox("Don't race swap self", ref _dontLalaSelf))
+        if (ImGui.Checkbox("Don't race/sex change self", ref _dontLalaSelf))
         {
             configuration.dontLalaSelf = _dontLalaSelf;
             configuration.Save();
@@ -203,8 +241,27 @@ internal class ConfigWindow : Window
             5 => Race.AU_RA,
             6 => Race.HROTHGAR,
             7 => Race.VIERA,
-            8 => Race.UNKNOWN,
-            _ => Race.LALAFELL,
+            _ => Race.UNKNOWN
+        };
+    }
+
+    private static Gender MapIndexToGender(int index)
+    {
+        return index switch
+        {
+            0 => Gender.FEMALE,
+            1 => Gender.MALE,
+            _ => Gender.UNKNOWN,
+        };
+    }
+
+    private static Clan MapIndexToClan(int index)
+    {
+        return index switch
+        {
+            0 => Clan.CLAN0,
+            1 => Clan.CLAN1,
+            _ => Clan.UNKNOWN,
         };
     }
 
