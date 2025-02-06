@@ -31,7 +31,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(285, 450);
+        Size = new Vector2(400, 470);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -240,11 +240,27 @@ internal class ConfigWindow : Window
         if (ImGui.Checkbox("Emperor's", ref _empLegs))
         {
             configuration.empLegs = _empLegs;
+            if (configuration.empLegs == false)
+                configuration.empLegsRandom = false;
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged();
         }
         Tooltip("Use Emperor's New Legs");
+        ImGui.EndDisabled();
+
+        ImGui.BeginDisabled(!configuration.empLegs);
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(300.0f);
+        bool _empLegsRandom = configuration.empLegsRandom;
+        if (ImGui.Checkbox("Random", ref _empLegsRandom))
+        {
+            configuration.empLegsRandom = _empLegsRandom;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged();
+        }
+        Tooltip("Randomly Use Emperor's New Legs");
         ImGui.EndDisabled();
 
         bool _stripGloves = configuration.stripGloves;
