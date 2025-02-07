@@ -31,7 +31,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(400, 470);
+        Size = new Vector2(400, 520);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -204,6 +204,17 @@ internal class ConfigWindow : Window
                 InvokeConfigChanged(true);
         }
         Tooltip("Warning: Altering NPCs will cause animation issues.");
+
+        ImGui.Text("Turn children into adults?");
+        ImGui.SetCursorPosX(20.0f);
+        bool _noChild = !configuration.noChild;
+        if (ImGui.Checkbox("No Children", ref _noChild))
+        {
+            configuration.noChild = !_noChild;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
 
         ImGui.Separator();
         bool _stripHats = configuration.stripHats;
