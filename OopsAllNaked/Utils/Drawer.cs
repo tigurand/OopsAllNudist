@@ -82,7 +82,7 @@ namespace OopsAllNaked.Utils
             if (customData.ModelType == 4 || customData.Race == Race.UNKNOWN)
                 return;
 
-            if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc)
+            if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                 return;
 
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
