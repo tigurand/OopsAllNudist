@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using ImGuiNET;
 using Penumbra.Api.Enums;
 using System;
 using System.Collections.Generic;
@@ -79,11 +80,19 @@ namespace OopsAllNaked.Utils
             bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201;
 
             // Avoid some broken conversions
-            if (customData.ModelType == 4 || customData.Race == Race.UNKNOWN)
-                return;
+            if (customData.Race == Race.UNKNOWN)
+                return;         
 
             if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                 return;
+
+            if (!Service.configuration.noChild)
+            {
+                if (customData.ModelType == 4)
+                    customData.ModelType = 1;
+                Marshal.StructureToPtr(customData, customizePtr, true);
+            }
+            else return;
 
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
             bool dontStrip = Service.configuration.dontStripSelf && isSelf;
