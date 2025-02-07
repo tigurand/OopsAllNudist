@@ -40,7 +40,7 @@ namespace OopsAllNaked.Utils
                 if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
                 if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                 if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
-
+                
                 Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
             }
         }
@@ -49,9 +49,9 @@ namespace OopsAllNaked.Utils
         {
             if (!Service.configuration.enabled)
                 return;
-
+            
             int objectIndex = -1;
-
+            
             foreach (var obj in Service.objectTable)
             {
                 if (!obj.IsValid()) continue;
@@ -63,7 +63,7 @@ namespace OopsAllNaked.Utils
 
             if (objectIndex == -1)
                 return;
-
+            
             Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
         }
 
@@ -77,7 +77,7 @@ namespace OopsAllNaked.Utils
             var charName = gameObj->NameString;
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201;
+            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201;            
 
             // Avoid some broken conversions
             if (customData.Race == Race.UNKNOWN)
@@ -86,13 +86,13 @@ namespace OopsAllNaked.Utils
             if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                 return;
 
-            if (!Service.configuration.noChild)
+            if (Service.configuration.noChild)
             {
                 if (customData.ModelType == 4)
                     customData.ModelType = 1;
                 Marshal.StructureToPtr(customData, customizePtr, true);
             }
-            else return;
+            //else return;
 
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
             bool dontStrip = Service.configuration.dontStripSelf && isSelf;
@@ -167,7 +167,7 @@ namespace OopsAllNaked.Utils
             {
                 for (int i = 5; i <= 9; ++i)
                     equipData[i] = 0;
-            }
+            }                    
         }
 
         public void Dispose()

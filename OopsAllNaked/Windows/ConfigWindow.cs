@@ -207,14 +207,15 @@ internal class ConfigWindow : Window
 
         ImGui.Text("Turn children into adults?");
         ImGui.SetCursorPosX(20.0f);
-        bool _noChild = !configuration.noChild;
+        bool _noChild = configuration.noChild;
         if (ImGui.Checkbox("No Children", ref _noChild))
         {
-            configuration.noChild = !_noChild;
+            configuration.noChild = _noChild;
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged(true);
         }
+		Tooltip("Warning: Enabling this will cause animation issues.");
 
         ImGui.Separator();
         bool _stripHats = configuration.stripHats;
