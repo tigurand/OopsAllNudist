@@ -227,6 +227,7 @@ internal class ConfigWindow : Window
             if (configuration.enabled)
                 InvokeConfigChanged(true);
         }
+		Tooltip("Warning: Enabling this will cause animation issues.");
 
         ImGui.Separator();
         bool _stripHats = configuration.stripHats;
