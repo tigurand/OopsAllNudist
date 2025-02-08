@@ -24,6 +24,7 @@ namespace OopsAllNaked
         public bool dontLalaNPC { get; set; } = true;
 
         public bool noChild { get; set; } = false;
+        public bool childClothes { get; set; } = true;
 
         public bool stripHats { get; set; } = true;
         public bool stripBodies { get; set; } = true;
