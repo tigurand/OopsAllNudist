@@ -68,7 +68,7 @@ namespace OopsAllNaked.Utils
         }
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
-        {
+        {            
             if (!Service.configuration.enabled) return;
 
             var gameObj = (GameObject*)gameObjectAddress;
@@ -159,7 +159,7 @@ namespace OopsAllNaked.Utils
         private static unsafe void StripClothes(ulong* equipData, nint equipPtr, ushort objectIndex)
         {
             Random rnd = new Random();
-            int empRnd = (objectIndex == 0 || objectIndex == 201 || objectIndex == 440) ? 0 : rnd.Next(2);
+            int empRnd = (objectIndex == 0 || objectIndex == 200 || objectIndex == 201 || objectIndex == 440) ? 0 : rnd.Next(2);
             if (Service.configuration.stripHats) equipData[0] = 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
