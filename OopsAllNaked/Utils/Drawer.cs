@@ -77,7 +77,7 @@ namespace OopsAllNaked.Utils
             var charName = gameObj->NameString;
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201;            
+            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 200 || gameObj->ObjectIndex == 201 || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442;
 
             // Avoid some broken conversions
             if (customData.Race == Race.UNKNOWN)
@@ -115,7 +115,7 @@ namespace OopsAllNaked.Utils
                 return;
 
             if (!dontStrip)
-                StripClothes(equipData, equipPtr, gameObj->ObjectIndex);            
+                StripClothes(equipData, equipPtr, isSelf);            
         }
 
         private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace, Gender selectedGender)
@@ -156,10 +156,10 @@ namespace OopsAllNaked.Utils
             Marshal.StructureToPtr(customData, customizePtr, true);
         }
 
-        private static unsafe void StripClothes(ulong* equipData, nint equipPtr, ushort objectIndex)
+        private static unsafe void StripClothes(ulong* equipData, nint equipPtr, bool isSelf)
         {
             Random rnd = new Random();
-            int empRnd = (objectIndex == 0 || objectIndex == 200 || objectIndex == 201 || objectIndex == 440) ? 0 : rnd.Next(2);
+            int empRnd = (isSelf) ? 0 : rnd.Next(2);
             if (Service.configuration.stripHats) equipData[0] = 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
