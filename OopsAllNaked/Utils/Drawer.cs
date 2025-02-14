@@ -89,7 +89,11 @@ namespace OopsAllNaked.Utils
             if (Service.configuration.noChild)
             {
                 if (customData.ModelType == 4)
-                    customData.ModelType = 1;
+                {
+                    if (customData.RaceFeatureType == 128)
+                        customData.RaceFeatureType = 0;
+                    customData.ModelType = 0;
+                }
                 Marshal.StructureToPtr(customData, customizePtr, true);
             }            
 
