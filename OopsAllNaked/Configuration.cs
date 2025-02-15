@@ -37,6 +37,7 @@ namespace OopsAllNaked
 
         public bool empLegs { get; set; } = false;
         public bool empLegsRandom { get; set; } = false;
+        public bool empLegsRandomSelf { get; set; } = false;
 
         public SortedSet<string> Whitelist { get; set; } = new(StringComparer.Ordinal);
 
