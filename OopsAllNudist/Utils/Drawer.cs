@@ -4,14 +4,14 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using ImGuiNET;
-using OopsAllNaked.Windows;
+using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using static OopsAllNaked.Utils.Constant;
+using static OopsAllNudist.Utils.Constant;
 
-namespace OopsAllNaked.Utils
+namespace OopsAllNudist.Utils
 {
     internal class Drawer : IDisposable
     {
@@ -21,7 +21,7 @@ namespace OopsAllNaked.Utils
             Service.configWindow.OnConfigChangedSingleChar += RefreshOnePlayer;
             if (Service.configuration.enabled)
             {
-                Plugin.OutputChatLine("OopsAllNaked starting...");
+                Plugin.OutputChatLine("OopsAllNudist starting...");
                 RefreshAllPlayers(false);
             }
         }
