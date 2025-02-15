@@ -1,12 +1,12 @@
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
-using OopsAllNaked.Utils;
+using OopsAllNudist.Utils;
 using System;
 using System.Numerics;
-using static OopsAllNaked.Utils.Constant;
+using static OopsAllNudist.Utils.Constant;
 
-namespace OopsAllNaked.Windows;
+namespace OopsAllNudist.Windows;
 
 internal class ConfigWindow : Window
 {
@@ -27,7 +27,7 @@ internal class ConfigWindow : Window
     }
 
     public ConfigWindow(Plugin plugin) : base(
-        "OopsAllNaked Configuration Window",
+        "OopsAllNudist Configuration Window",
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {

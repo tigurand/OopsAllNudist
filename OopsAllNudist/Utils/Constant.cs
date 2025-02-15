@@ -2,7 +2,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace OopsAllNaked.Utils
+namespace OopsAllNudist.Utils
 {
     internal static class Constant
     {

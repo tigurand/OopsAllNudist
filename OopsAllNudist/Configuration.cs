@@ -2,14 +2,14 @@ using Dalamud.Configuration;
 using Dalamud.Plugin;
 using System;
 using System.Collections.Generic;
-using static OopsAllNaked.Utils.Constant;
+using static OopsAllNudist.Utils.Constant;
 
-namespace OopsAllNaked
+namespace OopsAllNudist
 {
     [Serializable]
     internal class Configuration : IPluginConfiguration
     {
-        public int Version { get; set; } = 0;
+        public int Version { get; set; } = 1;
         public Race SelectedRace { get; set; } = Race.UNKNOWN;
         public Gender SelectedGender { get; set; } = Gender.UNKNOWN;
         public Clan SelectedClan { get; set; } = Clan.UNKNOWN;

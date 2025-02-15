@@ -1,19 +1,19 @@
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ImGuiNET;
-using OopsAllNaked.Utils;
+using OopsAllNudist.Utils;
 using System;
 using System.Numerics;
-using static OopsAllNaked.Utils.Constant;
+using static OopsAllNudist.Utils.Constant;
 
-namespace OopsAllNaked.Windows;
+namespace OopsAllNudist.Windows;
 
 internal class WhitelistWindow : Window
 {
     private readonly Configuration configuration;
 
     public WhitelistWindow(Plugin plugin) : base(
-        "OopsAllNaked Whitelist",
+        "OopsAllNudist Whitelist",
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse)
     {
         Size = new Vector2(220, 300);

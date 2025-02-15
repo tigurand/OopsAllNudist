@@ -3,18 +3,18 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using OopsAllNaked.Utils;
-using OopsAllNaked.Windows;
+using OopsAllNudist.Utils;
+using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 
-namespace OopsAllNaked
+namespace OopsAllNudist
 {
     internal sealed class Plugin : IDalamudPlugin
     {
-        public static string Name => "OopsAllNaked";
-        private const string CommandName = "/naked";
+        public static string Name => "OopsAllNudist";
+        private const string CommandName = "/nudist";
 
-        public WindowSystem WindowSystem { get; } = new("OopsAllNaked");
+        public WindowSystem WindowSystem { get; } = new("OopsAllNudist");
 
         public Plugin(IDalamudPluginInterface pluginInterface)
         {
@@ -44,7 +44,7 @@ namespace OopsAllNaked
 
             Service.commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Opens OopsAllNaked config menu."
+                HelpMessage = "Opens OopsAllNudist config menu."
             });
         }
 

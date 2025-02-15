@@ -4,7 +4,7 @@ using Penumbra.Api.Helpers;
 using Penumbra.Api.IpcSubscribers;
 using System;
 
-namespace OopsAllNaked.Utils
+namespace OopsAllNudist.Utils
 {
     internal class PenumbraIpc(IDalamudPluginInterface pluginInterface) : IDisposable
     {
