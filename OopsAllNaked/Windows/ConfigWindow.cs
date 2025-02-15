@@ -31,7 +31,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(400, 470);
+        Size = new Vector2(480, 560);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -80,6 +80,7 @@ internal class ConfigWindow : Window
         ImGui.AlignTextToFramePadding();
         ImGui.TextUnformatted("Target Race");
         ImGui.SameLine();
+        ImGui.SetCursorPosX(80.0f);
         if (ImGui.Combo("###Race", ref selectedRaceIndex, race, race.Length))
         {
             configuration.SelectedRace = MapIndexToRace(selectedRaceIndex);
@@ -94,6 +95,7 @@ internal class ConfigWindow : Window
         }
         ImGui.TextUnformatted("Target Sex");
         ImGui.SameLine();
+        ImGui.SetCursorPosX(80.0f);
         if (ImGui.Combo("###Sex", ref selectedGenderIndex, gender, gender.Length))
         {
             configuration.SelectedGender = MapIndexToGender(selectedGenderIndex);
@@ -105,6 +107,7 @@ internal class ConfigWindow : Window
         ImGui.TextUnformatted("Target Clan");
         Tooltip("e.g. 0 = Midlander, 1 = Highlander");
         ImGui.SameLine();
+        ImGui.SetCursorPosX(80.0f);
         if (ImGui.Combo("###Clan", ref selectedClanIndex, clan, clan.Length))
         {
             configuration.SelectedClan = MapIndexToClan(selectedClanIndex);
@@ -134,7 +137,7 @@ internal class ConfigWindow : Window
             configuration.stayOn = _StayOn;
             configuration.Save();
         }
-        Tooltip("Enable when plugin loads");
+        Tooltip("Enable when plugin loads.");
         ImGui.EndDisabled();
 
         ImGui.Separator();
@@ -205,6 +208,41 @@ internal class ConfigWindow : Window
         }
         Tooltip("Warning: Altering NPCs will cause animation issues.");
 
+        ImGui.Text("Turn children into adults?");
+        ImGui.SetCursorPosX(20.0f);
+        bool _noChild = configuration.noChild;
+        if (ImGui.Checkbox("No Children", ref _noChild))
+        {
+            configuration.noChild = _noChild;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+		Tooltip("Warning: Enabling this will cause animation issues.");
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(180.0f);
+        bool _childClothes = configuration.childClothes;
+        if (ImGui.Checkbox("Children's Clothing", ref _childClothes))
+        {
+            configuration.childClothes = _childClothes;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+
+        ImGui.Text("Turn Lalafells into other races?");
+        ImGui.SetCursorPosX(20.0f);
+        bool _noLala = configuration.noLala;
+        if (ImGui.Checkbox("No Lalafells", ref _noLala))
+        {
+            configuration.noLala = _noLala;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+        Tooltip("Warning: Enabling this will turn all Lalafells into other races, including NPCs.");
+
         ImGui.Separator();
         bool _stripHats = configuration.stripHats;
         if (ImGui.Checkbox("Strip Hats", ref _stripHats))
@@ -228,6 +266,12 @@ internal class ConfigWindow : Window
         if (ImGui.Checkbox("Strip Legs", ref _stripLegs))
         {
             configuration.stripLegs = _stripLegs;
+            if (configuration.stripLegs == false)
+            {
+                configuration.empLegs = false;
+                configuration.empLegsRandom = false;
+                configuration.empLegsRandomSelf = false;
+            }
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged();
@@ -235,32 +279,51 @@ internal class ConfigWindow : Window
 
         ImGui.BeginDisabled(!configuration.stripLegs);
         ImGui.SameLine();
-        ImGui.SetCursorPosX(150.0f);
+        ImGui.SetCursorPosX(120.0f);
         bool _empLegs = configuration.empLegs;
         if (ImGui.Checkbox("Emperor's", ref _empLegs))
         {
             configuration.empLegs = _empLegs;
             if (configuration.empLegs == false)
+            {
                 configuration.empLegsRandom = false;
+                configuration.empLegsRandomSelf = false;
+            }
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged();
         }
-        Tooltip("Use Emperor's New Legs");
+        Tooltip("Use Emperor's New Legs.");
         ImGui.EndDisabled();
 
         ImGui.BeginDisabled(!configuration.empLegs);
         ImGui.SameLine();
-        ImGui.SetCursorPosX(300.0f);
+        ImGui.SetCursorPosX(240.0f);
         bool _empLegsRandom = configuration.empLegsRandom;
         if (ImGui.Checkbox("Random", ref _empLegsRandom))
         {
             configuration.empLegsRandom = _empLegsRandom;
+            if (configuration.empLegsRandom == false)
+                configuration.empLegsRandomSelf = false;
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged();
         }
-        Tooltip("Randomly Use Emperor's New Legs");
+        Tooltip("Randomly Use Emperor's New Legs.");
+        ImGui.EndDisabled();
+
+        ImGui.BeginDisabled(!configuration.empLegsRandom);
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(360.0f);
+        bool _empLegsRandomSelf = configuration.empLegsRandomSelf;
+        if (ImGui.Checkbox("Random Self", ref _empLegsRandomSelf))
+        {
+            configuration.empLegsRandomSelf = _empLegsRandomSelf;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged();
+        }
+        Tooltip("Randomize self.");
         ImGui.EndDisabled();
 
         bool _stripGloves = configuration.stripGloves;
@@ -331,7 +394,7 @@ internal class ConfigWindow : Window
         }
     }
 
-    private static Race MapIndexToRace(int index)
+    public static Race MapIndexToRace(int index)
     {
         return index switch
         {

@@ -28,7 +28,7 @@ namespace OopsAllNaked.Utils
             {
                 Plugin.OutputChatLine($"Warning: Penumbra not found. Error: {ex.Message}\n" +
                                       "Note: if you disable Penumbra before this plugin, lalafells will stay there until updated.");
-            }
+            }            
         }
 
         internal void RedrawAll(RedrawType setting)
@@ -41,7 +41,7 @@ namespace OopsAllNaked.Utils
             {
                 Plugin.OutputChatLine($"Warning: Penumbra not found. Error: {ex.Message}\n" +
                                       "Note: if you disable Penumbra before this plugin, lalafells will stay there until updated.");
-            }
-        }
+            }            
+        }        
     }
 }

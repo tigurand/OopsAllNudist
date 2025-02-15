@@ -3,6 +3,8 @@ using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using ImGuiNET;
+using OopsAllNaked.Windows;
 using Penumbra.Api.Enums;
 using System;
 using System.Collections.Generic;
@@ -39,7 +41,7 @@ namespace OopsAllNaked.Utils
                 if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
                 if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                 if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
-
+                
                 Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
             }
         }
@@ -48,9 +50,9 @@ namespace OopsAllNaked.Utils
         {
             if (!Service.configuration.enabled)
                 return;
-
+            
             int objectIndex = -1;
-
+            
             foreach (var obj in Service.objectTable)
             {
                 if (!obj.IsValid()) continue;
@@ -62,12 +64,12 @@ namespace OopsAllNaked.Utils
 
             if (objectIndex == -1)
                 return;
-
+            
             Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
         }
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
-        {
+        {            
             if (!Service.configuration.enabled) return;
 
             var gameObj = (GameObject*)gameObjectAddress;
@@ -76,14 +78,25 @@ namespace OopsAllNaked.Utils
             var charName = gameObj->NameString;
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 201;
+            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 200 || gameObj->ObjectIndex == 201 || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442;
 
             // Avoid some broken conversions
-            if (customData.ModelType == 4 || customData.Race == Race.UNKNOWN)
-                return;
+            if (customData.Race == Race.UNKNOWN)
+                return;         
 
             if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                 return;
+
+            if (Service.configuration.noChild)
+            {
+                if (customData.ModelType == 4)
+                {
+                    if (customData.RaceFeatureType == 128)
+                        customData.RaceFeatureType = 0;
+                    customData.ModelType = 0;
+                }
+                Marshal.StructureToPtr(customData, customizePtr, true);
+            }            
 
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
             bool dontStrip = Service.configuration.dontStripSelf && isSelf;
@@ -98,21 +111,38 @@ namespace OopsAllNaked.Utils
                 return;
 
             if (dontLala && dontStrip)
-                return;
+                if (!Service.configuration.noLala)
+                    return;
 
             if (!dontLala)
                 ChangeRace(customData, customizePtr, Service.configuration.SelectedRace, Service.configuration.SelectedGender);
 
+            if (customData.ModelType == 4 && Service.configuration.childClothes)
+                return;
+
+            if (Service.configuration.noLala)
+            {
+                if (customData.Race == Race.LALAFELL)
+                {
+                    Random rnd = new Random();
+                    int raceRnd = rnd.Next(7) + 1;
+                    ChangeRace(customData, customizePtr, (Service.configuration.SelectedRace == Race.UNKNOWN || Service.configuration.SelectedRace == Race.LALAFELL) ? ConfigWindow.MapIndexToRace(raceRnd) : Service.configuration.SelectedRace, Service.configuration.SelectedGender);
+                }
+            }
+
             if (!dontStrip)
-                StripClothes(equipData, equipPtr);
+                StripClothes(equipData, equipPtr, isSelf);            
         }
 
         private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace, Gender selectedGender)
-        {
+        {            
             bool raceChange = (Service.configuration.SelectedRace != Race.UNKNOWN && customData.Race != Service.configuration.SelectedRace);
             bool sexChange = (Service.configuration.SelectedGender != Gender.UNKNOWN && customData.Gender != Service.configuration.SelectedGender);
 
             if (Service.configuration.SelectedRace != Race.UNKNOWN && Service.configuration.SelectedClan != Clan.UNKNOWN)
+                raceChange = true;
+
+            if (Service.configuration.noLala)
                 raceChange = true;
 
             if (raceChange)
@@ -145,10 +175,10 @@ namespace OopsAllNaked.Utils
             Marshal.StructureToPtr(customData, customizePtr, true);
         }
 
-        private static unsafe void StripClothes(ulong* equipData, nint equipPtr)
+        private static unsafe void StripClothes(ulong* equipData, nint equipPtr, bool isSelf)
         {
             Random rnd = new Random();
-            int empRnd = rnd.Next(2);
+            int empRnd = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
             if (Service.configuration.stripHats) equipData[0] = 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
@@ -158,7 +188,7 @@ namespace OopsAllNaked.Utils
             {
                 for (int i = 5; i <= 9; ++i)
                     equipData[i] = 0;
-            }
+            }                    
         }
 
         public void Dispose()
