@@ -23,6 +23,11 @@ namespace OopsAllNaked
         public bool dontLalaPC { get; set; } = false;
         public bool dontLalaNPC { get; set; } = true;
 
+        public bool noChild { get; set; } = false;
+        public bool childClothes { get; set; } = true;
+
+        public bool noLala { get; set; } = false;
+
         public bool stripHats { get; set; } = true;
         public bool stripBodies { get; set; } = true;
         public bool stripLegs { get; set; } = true;
@@ -32,6 +37,7 @@ namespace OopsAllNaked
 
         public bool empLegs { get; set; } = false;
         public bool empLegsRandom { get; set; } = false;
+        public bool empLegsRandomSelf { get; set; } = false;
 
         public SortedSet<string> Whitelist { get; set; } = new(StringComparer.Ordinal);
 
