@@ -178,7 +178,7 @@ namespace OopsAllNaked.Utils
         private static unsafe void StripClothes(ulong* equipData, nint equipPtr, bool isSelf)
         {
             Random rnd = new Random();
-            int empRnd = (isSelf) ? 0 : rnd.Next(2);
+            int empRnd = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
             if (Service.configuration.stripHats) equipData[0] = 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
