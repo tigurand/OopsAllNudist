@@ -4,6 +4,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using ImGuiNET;
+using OopsAllNaked.Windows;
 using Penumbra.Api.Enums;
 using System;
 using System.Collections.Generic;
@@ -110,13 +111,24 @@ namespace OopsAllNaked.Utils
                 return;
 
             if (dontLala && dontStrip)
-                return;
+                if (!Service.configuration.noLala)
+                    return;
 
             if (!dontLala)
                 ChangeRace(customData, customizePtr, Service.configuration.SelectedRace, Service.configuration.SelectedGender);
 
             if (customData.ModelType == 4 && Service.configuration.childClothes)
                 return;
+
+            if (Service.configuration.noLala)
+            {
+                if (customData.Race == Race.LALAFELL)
+                {
+                    Random rnd = new Random();
+                    int raceRnd = rnd.Next(7) + 1;
+                    ChangeRace(customData, customizePtr, (Service.configuration.SelectedRace == Race.UNKNOWN || Service.configuration.SelectedRace == Race.LALAFELL) ? ConfigWindow.MapIndexToRace(raceRnd) : Service.configuration.SelectedRace, Service.configuration.SelectedGender);
+                }
+            }
 
             if (!dontStrip)
                 StripClothes(equipData, equipPtr, isSelf);            
@@ -128,6 +140,9 @@ namespace OopsAllNaked.Utils
             bool sexChange = (Service.configuration.SelectedGender != Gender.UNKNOWN && customData.Gender != Service.configuration.SelectedGender);
 
             if (Service.configuration.SelectedRace != Race.UNKNOWN && Service.configuration.SelectedClan != Clan.UNKNOWN)
+                raceChange = true;
+
+            if (Service.configuration.noLala)
                 raceChange = true;
 
             if (raceChange)

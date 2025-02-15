@@ -31,7 +31,7 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
         ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(400, 520);
+        Size = new Vector2(400, 560);
         SizeCondition = ImGuiCond.Always;
 
         configuration = Service.configuration;
@@ -228,6 +228,18 @@ internal class ConfigWindow : Window
                 InvokeConfigChanged(true);
         }
 
+        ImGui.Text("Turn Lalafells into other races?");
+        ImGui.SetCursorPosX(20.0f);
+        bool _noLala = configuration.noLala;
+        if (ImGui.Checkbox("No Lalafells", ref _noLala))
+        {
+            configuration.noLala = _noLala;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+        Tooltip("Warning: Enabling this will turn all Lalafells into other races, including NPCs.");
+
         ImGui.Separator();
         bool _stripHats = configuration.stripHats;
         if (ImGui.Checkbox("Strip Hats", ref _stripHats))
@@ -354,7 +366,7 @@ internal class ConfigWindow : Window
         }
     }
 
-    private static Race MapIndexToRace(int index)
+    public static Race MapIndexToRace(int index)
     {
         return index switch
         {
