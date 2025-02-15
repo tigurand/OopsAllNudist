@@ -1,4 +1,4 @@
-# OopsAllNaked
+# OopsAllNudist
 
 Turn everyone around you naked (and some other things)
 
@@ -6,10 +6,15 @@ Turn everyone around you naked (and some other things)
 - Smol update by Ars Magna for to run in 6.2
 - Updated to 7.1 by Kelvin
 - Nudistified by a fox
+- Edited by Lucille
 
 ## Usage
-Add `https://raw.githubusercontent.com/helpful-fox-senko-san/DalamudPlugins/refs/heads/plogon/repo.json` and `https://raw.githubusercontent.com/xivdev/Penumbra/master/repo.json` to list of custom repo under Experimental tab in dalamud settings.  
-Install and enable Penumbra and OopsAllNaked.
+Add<br />
+`https://raw.githubusercontent.com/tigurand/DalamudPlugins/refs/heads/main/repo.json`<br />
+and<br />
+`https://raw.githubusercontent.com/xivdev/Penumbra/master/repo.json`<br />
+to list of custom repo under Experimental tab in dalamud settings.  
+Install and enable Penumbra and OopsAllNudist.
 
 ## ⚠️ READ THIS ⚠️
 
