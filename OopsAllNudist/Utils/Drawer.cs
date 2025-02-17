@@ -142,7 +142,7 @@ namespace OopsAllNudist.Utils
             if (Service.configuration.SelectedRace != Race.UNKNOWN && Service.configuration.SelectedClan != Clan.UNKNOWN)
                 raceChange = true;
 
-            if (Service.configuration.noLala)
+            if (customData.Race == Race.LALAFELL && Service.configuration.noLala)
                 raceChange = true;
 
             if (raceChange)
