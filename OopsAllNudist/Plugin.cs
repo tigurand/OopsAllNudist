@@ -81,6 +81,13 @@ namespace OopsAllNudist
                 Service.configWindow.InvokeConfigChanged();
                 return;
             }
+            if (args == "toggle")
+            {
+                Service.configuration.enabled = (Service.configuration.enabled) ? false : true;
+                Service.configuration.Save();
+                Service.configWindow.InvokeConfigChanged();
+                return;
+            }
             Service.configWindow.IsOpen = true;
         }
 
