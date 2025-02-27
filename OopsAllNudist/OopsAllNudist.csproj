@@ -5,7 +5,7 @@
     <PropertyGroup>
         <Authors></Authors>
         <Company></Company>
-        <Version>2.0.3.2</Version>
+        <Version>2.0.3.3</Version>
         <Description>Turn everyone around you into a nudist.</Description>
         <Copyright></Copyright>
         <PackageProjectUrl>https://github.com/tigurand/OopsAllNudist</PackageProjectUrl>

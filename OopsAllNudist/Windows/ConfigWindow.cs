@@ -122,8 +122,6 @@ internal class ConfigWindow : Window
         if (ImGui.Checkbox("Enable", ref _Enabled))
         {
             configuration.enabled = _Enabled;
-            if (configuration.enabled == false)
-                configuration.stayOn = false;
             configuration.Save();
             InvokeConfigChanged();
         }
