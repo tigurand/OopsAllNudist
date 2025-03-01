@@ -78,7 +78,7 @@ namespace OopsAllNudist.Utils
             var charName = gameObj->NameString;
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = gameObj->ObjectIndex == 0 || gameObj->ObjectIndex == 200 || gameObj->ObjectIndex == 201 || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442;
+            bool isSelf = gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 202) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442;
 
             // Avoid some broken conversions
             if (customData.Race == Race.UNKNOWN)
