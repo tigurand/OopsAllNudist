@@ -1,13 +1,9 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using ImGuiNET;
 using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static OopsAllNudist.Utils.Constant;
 
@@ -30,20 +26,23 @@ namespace OopsAllNudist.Utils
         {
             Plugin.OutputChatLine("Refreshing all players");
 
-            foreach (var obj in Service.objectTable)
+            Service.Framework.RunOnFrameworkThread(() =>
             {
-                if (!obj.IsValid()) continue;
-                if (obj is not ICharacter) continue;
-                if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
+                foreach (var obj in Service.objectTable)
+                {
+                    if (!obj.IsValid()) continue;
+                    if (obj is not ICharacter) continue;
+                    if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
-                bool isPc = obj is IPlayerCharacter;
-                bool isSelf = obj.ObjectIndex == 0 || obj.ObjectIndex == 201;
-                if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
-                if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
-                if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
-                
-                Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
-            }
+                    bool isPc = obj is IPlayerCharacter;
+                    bool isSelf = obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 202) || obj.ObjectIndex == 440 || obj.ObjectIndex == 442;
+                    if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
+                    if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
+                    if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
+
+                    Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
+                }
+            });
         }
 
         private static void RefreshOnePlayer(string charName)
@@ -52,15 +51,18 @@ namespace OopsAllNudist.Utils
                 return;
             
             int objectIndex = -1;
-            
-            foreach (var obj in Service.objectTable)
+
+            Service.Framework.RunOnFrameworkThread(() =>
             {
-                if (!obj.IsValid()) continue;
-                if (obj is not ICharacter) continue;
-                if (obj.Name.TextValue != charName) continue;
-                objectIndex = obj.ObjectIndex;
-                break;
-            }
+                foreach (var obj in Service.objectTable)
+                {
+                    if (!obj.IsValid()) continue;
+                    if (obj is not ICharacter) continue;
+                    if (obj.Name.TextValue != charName) continue;
+                    objectIndex = obj.ObjectIndex;
+                    break;
+                }
+            });
 
             if (objectIndex == -1)
                 return;
@@ -131,7 +133,7 @@ namespace OopsAllNudist.Utils
             }
 
             if (!dontStrip)
-                StripClothes(equipData, equipPtr, isSelf);            
+                StripClothes(equipData, isSelf);
         }
 
         private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace, Gender selectedGender)
@@ -175,7 +177,7 @@ namespace OopsAllNudist.Utils
             Marshal.StructureToPtr(customData, customizePtr, true);
         }
 
-        private static unsafe void StripClothes(ulong* equipData, nint equipPtr, bool isSelf)
+        private static unsafe void StripClothes(ulong* equipData, bool isSelf)
         {
             Random rnd = new Random();
             int empRnd = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
@@ -188,7 +190,7 @@ namespace OopsAllNudist.Utils
             {
                 for (int i = 5; i <= 9; ++i)
                     equipData[i] = 0;
-            }                    
+            }
         }
 
         public void Dispose()
