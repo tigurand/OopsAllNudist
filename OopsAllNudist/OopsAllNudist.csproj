@@ -5,19 +5,20 @@
     <PropertyGroup>
         <Authors></Authors>
         <Company></Company>
-        <Version>2.0.3.4</Version>
+        <Version>2.0.3.5</Version>
         <Description>Turn everyone around you into a nudist.</Description>
         <Copyright></Copyright>
         <PackageProjectUrl>https://github.com/tigurand/OopsAllNudist</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <IsPackable>false</IsPackable>
+        <TargetFramework>net9.0-windows7.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Penumbra.Api" Version="5.6.0" />
+        <PackageReference Include="Penumbra.Api" Version="5.6.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Update="DalamudPackager" Version="11.0.0" />
+      <PackageReference Update="DalamudPackager" Version="12.0.0" />
     </ItemGroup>
 </Project>
