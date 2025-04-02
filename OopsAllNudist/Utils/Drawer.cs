@@ -35,7 +35,7 @@ namespace OopsAllNudist.Utils
                     if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
                     bool isPc = obj is IPlayerCharacter;
-                    bool isSelf = obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 202) || obj.ObjectIndex == 440 || obj.ObjectIndex == 442;
+                    bool isSelf = obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 202) || obj.ObjectIndex == 440 || obj.ObjectIndex == 442 || obj.ObjectIndex == 443;
                     if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
                     if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                     if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
@@ -80,7 +80,7 @@ namespace OopsAllNudist.Utils
             var charName = gameObj->NameString;
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 202) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442;
+            bool isSelf = gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 202) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442 || gameObj->ObjectIndex == 443;
 
             // Avoid some broken conversions
             if (customData.Race == Race.UNKNOWN)
