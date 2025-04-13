@@ -44,7 +44,7 @@ namespace OopsAllNudist
 
             Service.commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
             {
-                HelpMessage = "Opens OopsAllNudist config menu."
+                HelpMessage = "Opens OopsAllNudist config menu. Can also be used with args on, off, or toggle."
             });
         }
 
