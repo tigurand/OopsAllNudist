@@ -40,6 +40,7 @@ namespace OopsAllNudist
             _ = pluginInterface.Create<Drawer>();
 
             pluginInterface.UiBuilder.Draw += DrawUI;
+            pluginInterface.UiBuilder.OpenMainUi += DrawConfigUI;
             pluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
 
             Service.commandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
