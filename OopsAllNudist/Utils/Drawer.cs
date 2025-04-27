@@ -158,6 +158,7 @@ namespace OopsAllNudist.Utils
 
             if (sexChange)
             {
+                customData.FaceType %= 4;
                 customData.Gender = selectedGender;
             }
 
