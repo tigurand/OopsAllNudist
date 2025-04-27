@@ -1,6 +1,6 @@
 # OopsAllNudist
 
-This is a personal fork of [OopsAllNaked](https://github.com/senko-forks/OopsAllNaked) by Senko, to be used by me and friends based on our preferences. You can use this if you want, but don't expect too much from me, I'm noob at coding.
+This is a personal fork of [OopsAllNaked](https://github.com/senko-forks/OopsAllNaked) by Senko, to be used by me and friends based on our preferences. You can use this fork if you want, but don't expect too much from me, I'm noob at coding.
 
 Turn everyone around you naked (and some other things)
 
