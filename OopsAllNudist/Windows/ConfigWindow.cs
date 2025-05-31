@@ -28,11 +28,12 @@ internal class ConfigWindow : Window
 
     public ConfigWindow(Plugin plugin) : base(
         "OopsAllNudist Configuration Window",
-        ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
-        ImGuiWindowFlags.NoScrollWithMouse)
+        ImGuiWindowFlags.NoScrollbar)
+        //ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
+        //ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(480, 560);
-        SizeCondition = ImGuiCond.Always;
+        Size = new Vector2(480, 566);
+        SizeCondition = ImGuiCond.Appearing;
 
         configuration = Service.configuration;
 
