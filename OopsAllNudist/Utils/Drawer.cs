@@ -78,14 +78,17 @@ namespace OopsAllNudist.Utils
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             var equipData = (ulong*)equipPtr;
             var charName = gameObj->NameString;
+            string[] childNPCNames = { "Alphinaud", "Alisaie" };
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442 || gameObj->ObjectIndex == 443;
+            bool isSelf = isPc && (gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442 || gameObj->ObjectIndex == 443);
 
             if (Service.configuration.debugMode)
             {
                 Plugin.OutputChatLine("Name: " + charName);
                 Plugin.OutputChatLine("ObjectIndex: " + gameObj->ObjectIndex);
+                Plugin.OutputChatLine("ModelType: " + customData.ModelType);
+                Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
             }
                 
             // Avoid some broken conversions
@@ -102,9 +105,29 @@ namespace OopsAllNudist.Utils
                     if (customData.RaceFeatureType == 128)
                         customData.RaceFeatureType = 0;
                     customData.ModelType = 0;
+                    
+                    foreach (string name in childNPCNames)
+                    {
+                        if (!string.IsNullOrEmpty(charName) && charName.Contains(name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            switch (name)
+                            {
+                                case "Alphinaud":
+                                    customData.FaceType = 1;
+                                    customData.HairStyle = 174;
+                                    break;
+                                case "Alisaie":
+                                    customData.FaceType = 4;
+                                    customData.HairStyle = 174;
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }            
                 }
                 Marshal.StructureToPtr(customData, customizePtr, true);
-            }            
+            }
 
             bool dontLala = Service.configuration.dontLalaSelf && isSelf;
             bool dontStrip = Service.configuration.dontStripSelf && isSelf;

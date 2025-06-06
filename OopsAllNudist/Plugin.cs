@@ -27,6 +27,20 @@ namespace OopsAllNudist
                 Service.configuration.enabled = false;
             }
 
+            if (Service.configuration.debugMode)
+            {
+                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = true;
+                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = true;
+                Service.pluginInterface.UiBuilder.DisableGposeUiHide = true;
+                Service.pluginInterface.UiBuilder.DisableUserUiHide = true;
+            }
+            else 
+            {
+                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = false;
+                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = false;
+                Service.pluginInterface.UiBuilder.DisableGposeUiHide = false;
+                Service.pluginInterface.UiBuilder.DisableUserUiHide = false;
+            }
             Service.configuration.Initialize(pluginInterface);
 
             _ = pluginInterface.Create<Service>();
@@ -98,7 +112,7 @@ namespace OopsAllNudist
                 Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = true;
                 Service.pluginInterface.UiBuilder.DisableGposeUiHide = true;
                 Service.pluginInterface.UiBuilder.DisableUserUiHide = true;
-                Plugin.OutputChatLine("Debug mode on.");
+                OutputChatLine("Debug mode on.");
                 return;
             }
             if (args == "debug off")
@@ -110,7 +124,7 @@ namespace OopsAllNudist
                 Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = false;
                 Service.pluginInterface.UiBuilder.DisableGposeUiHide = false;
                 Service.pluginInterface.UiBuilder.DisableUserUiHide = false;
-                Plugin.OutputChatLine("Debug mode off.");
+                OutputChatLine("Debug mode off.");
                 return;
             }
             Service.configWindow.IsOpen = true;
