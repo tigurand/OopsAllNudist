@@ -80,8 +80,14 @@ namespace OopsAllNudist.Utils
             var charName = gameObj->NameString;
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 202) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442 || gameObj->ObjectIndex == 443;
+            bool isSelf = gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442 || gameObj->ObjectIndex == 443;
 
+            if (Service.configuration.debugMode)
+            {
+                Plugin.OutputChatLine("Name: " + charName);
+                Plugin.OutputChatLine("ObjectIndex: " + gameObj->ObjectIndex);
+            }
+                
             // Avoid some broken conversions
             if (customData.Race == Race.UNKNOWN)
                 return;         

@@ -89,6 +89,30 @@ namespace OopsAllNudist
                 Service.configWindow.InvokeConfigChanged();
                 return;
             }
+            if (args == "debug on")
+            {
+                Service.configuration.debugMode = true;
+                Service.configuration.Save();
+                Service.configWindow.InvokeConfigChanged();
+                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = true;
+                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = true;
+                Service.pluginInterface.UiBuilder.DisableGposeUiHide = true;
+                Service.pluginInterface.UiBuilder.DisableUserUiHide = true;
+                Plugin.OutputChatLine("Debug mode on.");
+                return;
+            }
+            if (args == "debug off")
+            {
+                Service.configuration.debugMode = false;
+                Service.configuration.Save();
+                Service.configWindow.InvokeConfigChanged();
+                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = false;
+                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = false;
+                Service.pluginInterface.UiBuilder.DisableGposeUiHide = false;
+                Service.pluginInterface.UiBuilder.DisableUserUiHide = false;
+                Plugin.OutputChatLine("Debug mode off.");
+                return;
+            }
             Service.configWindow.IsOpen = true;
         }
 
