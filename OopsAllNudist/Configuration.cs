@@ -41,6 +41,8 @@ namespace OopsAllNudist
 
         public SortedSet<string> Whitelist { get; set; } = new(StringComparer.Ordinal);
 
+        public bool debugMode { get; set; } = false;
+
         // the below exist just to make saving less cumbersome
         [NonSerialized]
         private IDalamudPluginInterface? pluginInterface;
