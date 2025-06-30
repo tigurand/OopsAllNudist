@@ -98,7 +98,7 @@ namespace OopsAllNudist
             }
             if (args == "toggle")
             {
-                Service.configuration.enabled = (Service.configuration.enabled) ? false : true;
+                Service.configuration.enabled = !(Service.configuration.enabled);
                 Service.configuration.Save();
                 Service.configWindow.InvokeConfigChanged();
                 return;
