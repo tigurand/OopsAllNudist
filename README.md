@@ -10,7 +10,7 @@ Turn everyone around you naked (and some other things)
 - Nudistified by a fox
 - Edited by Lucille
 
-## Usage
+## Installation
 Add<br />
 `https://raw.githubusercontent.com/tigurand/DalamudPlugins/refs/heads/main/repo.json`<br />
 and<br />
