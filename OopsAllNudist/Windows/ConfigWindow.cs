@@ -3,7 +3,6 @@ using Dalamud.Utility;
 using ImGuiNET;
 using OopsAllNudist.Utils;
 using System;
-using System.Numerics;
 using static OopsAllNudist.Utils.Constant;
 
 namespace OopsAllNudist.Windows;
@@ -28,13 +27,10 @@ internal class ConfigWindow : Window
 
     public ConfigWindow(Plugin plugin) : base(
         "OopsAllNudist Configuration Window",
-        ImGuiWindowFlags.NoScrollbar)
-        //ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
-        //ImGuiWindowFlags.NoScrollWithMouse)
+        ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize)
+    //ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
+    //ImGuiWindowFlags.NoScrollWithMouse)
     {
-        Size = new Vector2(480, 566);
-        SizeCondition = ImGuiCond.Appearing;
-
         configuration = Service.configuration;
 
         selectedRaceIndex = configuration.SelectedRace switch
@@ -79,6 +75,7 @@ internal class ConfigWindow : Window
     {
         // select race
         ImGui.AlignTextToFramePadding();
+        ImGui.PushItemWidth(-1);
         ImGui.TextUnformatted("Target Race");
         ImGui.SameLine();
         ImGui.SetCursorPosX(80.0f);
@@ -116,6 +113,7 @@ internal class ConfigWindow : Window
             if (configuration.enabled)
                 InvokeConfigChanged();
         }
+        ImGui.PopItemWidth();
         ImGui.EndDisabled();
 
         // Enabled
@@ -217,7 +215,7 @@ internal class ConfigWindow : Window
             if (configuration.enabled)
                 InvokeConfigChanged(true);
         }
-		Tooltip("Warning: Enabling this will cause animation issues.");
+        Tooltip("Warning: Enabling this will cause animation issues.");
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(180.0f);

@@ -1,10 +1,7 @@
 using Dalamud.Interface.Windowing;
-using Dalamud.Utility;
 using ImGuiNET;
 using OopsAllNudist.Utils;
-using System;
 using System.Numerics;
-using static OopsAllNudist.Utils.Constant;
 
 namespace OopsAllNudist.Windows;
 
@@ -13,12 +10,17 @@ internal class WhitelistWindow : Window
     private readonly Configuration configuration;
 
     public WhitelistWindow(Plugin plugin) : base(
-        "OopsAllNudist Whitelist",
-        ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse)
+        "OopsAllNudist Whitelist")
+    //ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse)
     {
+        SizeConstraints = new WindowSizeConstraints
+        {
+            MinimumSize = new Vector2(220, 300),
+            MaximumSize = new Vector2(9999, 9999)
+        };
         Size = new Vector2(220, 300);
         configuration = Service.configuration;
-        SizeCondition = ImGuiCond.Always;
+        SizeCondition = ImGuiCond.FirstUseEver;
     }
 
     public override void Draw()
