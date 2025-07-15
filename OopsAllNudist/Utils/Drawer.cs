@@ -49,7 +49,7 @@ namespace OopsAllNudist.Utils
         {
             if (!Service.configuration.enabled)
                 return;
-            
+
             int objectIndex = -1;
 
             Service.Framework.RunOnFrameworkThread(() =>
@@ -66,12 +66,12 @@ namespace OopsAllNudist.Utils
 
             if (objectIndex == -1)
                 return;
-            
+
             Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
         }
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
-        {            
+        {
             if (!Service.configuration.enabled) return;
 
             var gameObj = (GameObject*)gameObjectAddress;
@@ -90,10 +90,10 @@ namespace OopsAllNudist.Utils
                 Plugin.OutputChatLine("ModelType: " + customData.ModelType);
                 Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
             }
-                
+
             // Avoid some broken conversions
             if (customData.Race == Race.UNKNOWN)
-                return;         
+                return;
 
             if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                 return;
@@ -105,7 +105,7 @@ namespace OopsAllNudist.Utils
                     if (customData.RaceFeatureType == 128)
                         customData.RaceFeatureType = 0;
                     customData.ModelType = 0;
-                    
+
                     foreach (string name in childNPCNames)
                     {
                         if (!string.IsNullOrEmpty(charName) && charName.Contains(name, StringComparison.OrdinalIgnoreCase))
@@ -124,7 +124,7 @@ namespace OopsAllNudist.Utils
                                     break;
                             }
                         }
-                    }            
+                    }
                 }
                 Marshal.StructureToPtr(customData, customizePtr, true);
             }
@@ -166,7 +166,7 @@ namespace OopsAllNudist.Utils
         }
 
         private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace, Gender selectedGender)
-        {            
+        {
             bool raceChange = (Service.configuration.SelectedRace != Race.UNKNOWN && customData.Race != Service.configuration.SelectedRace);
             bool sexChange = (Service.configuration.SelectedGender != Gender.UNKNOWN && customData.Gender != Service.configuration.SelectedGender);
 
@@ -212,7 +212,7 @@ namespace OopsAllNudist.Utils
             Random rnd = new Random();
             int empRnd = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
             //if (Service.configuration.stripHats) equipData[0] = 0;
-            if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 279U : 0;            
+            if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 279U : 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
             if (Service.configuration.stripLegs) equipData[3] = Service.configuration.empLegs ? (Service.configuration.empLegsRandom ? (empRnd == 0 ? 0 : 279U) : 279U) : 0;
