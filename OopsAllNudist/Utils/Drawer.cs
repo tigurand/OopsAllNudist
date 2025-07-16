@@ -35,7 +35,8 @@ namespace OopsAllNudist.Utils
                     if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
                     bool isPc = obj is IPlayerCharacter;
-                    bool isSelf = obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 202) || obj.ObjectIndex == 440 || obj.ObjectIndex == 442 || obj.ObjectIndex == 443;
+                    // Make sure the value for isSelf is the same as the one in OnCreatingCharacterBase
+                    bool isSelf = isPc && (obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 205) || obj.ObjectIndex == 440 || obj.ObjectIndex == 442 || obj.ObjectIndex == 443);
                     if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
                     if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                     if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
@@ -81,6 +82,7 @@ namespace OopsAllNudist.Utils
             string[] childNPCNames = { "Alphinaud", "Alisaie" };
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
+            // Make sure the value for isSelf is the same as the one in RefreshAllPlayers
             bool isSelf = isPc && (gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442 || gameObj->ObjectIndex == 443);
 
             if (Service.configuration.debugMode)
