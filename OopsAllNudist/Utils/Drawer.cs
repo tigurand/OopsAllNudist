@@ -4,13 +4,25 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using static OopsAllNudist.Utils.Constant;
 
 namespace OopsAllNudist.Utils
 {
     internal class Drawer : IDisposable
     {
+        private static readonly ConcurrentDictionary<nint, CancellationTokenSource> PrimaryDebounceTokens = new();
+        private const int PRIMARY_DEBOUNCE_MILLISECONDS = 350;
+
+        private static readonly ConcurrentDictionary<nint, CancellationTokenSource> SafetyNetDebounceTokens = new();
+        private const int SAFETY_NET_MILLISECONDS = 2000;
+
+        private static readonly ConcurrentDictionary<nint, bool> CooldownLocks = new();
+        private const int COOLDOWN_MILLISECONDS = 1500;
+
         public Drawer()
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
@@ -20,6 +32,147 @@ namespace OopsAllNudist.Utils
                 Plugin.OutputChatLine("OopsAllNudist starting...");
                 RefreshAllPlayers(false);
             }
+        }
+
+        public static void OnGlamourerStateChanged(nint objectAddress)
+        {
+            if (!Service.configuration.enabled)
+                return;
+
+            if (CooldownLocks.ContainsKey(objectAddress))
+            {
+                if (!SafetyNetDebounceTokens.ContainsKey(objectAddress))
+                {
+                    ScheduleSafetyNetRedraw(objectAddress);
+                }
+                return;
+            }
+
+            StartOrResetPrimaryDebounce(objectAddress);
+        }
+
+        private static void StartOrResetPrimaryDebounce(nint objectAddress)
+        {
+            if (PrimaryDebounceTokens.TryGetValue(objectAddress, out var oldCts))
+            {
+                oldCts.Cancel();
+            }
+
+            var newCts = new CancellationTokenSource();
+            if (!PrimaryDebounceTokens.TryAdd(objectAddress, newCts))
+            {
+                if (PrimaryDebounceTokens.TryGetValue(objectAddress, out oldCts)) oldCts.Cancel();
+                PrimaryDebounceTokens[objectAddress] = newCts;
+            }
+
+            _ = DebouncedRedraw(objectAddress, newCts.Token);
+        }
+
+        private static void ScheduleSafetyNetRedraw(nint objectAddress)
+        {
+            if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out var oldCts))
+            {
+                oldCts.Cancel();
+            }
+
+            var newCts = new CancellationTokenSource();
+            if (!SafetyNetDebounceTokens.TryAdd(objectAddress, newCts))
+            {
+                if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out oldCts)) oldCts.Cancel();
+                SafetyNetDebounceTokens[objectAddress] = newCts;
+            }
+
+            _ = PerformSafetyNetRedraw(objectAddress, newCts.Token);
+        }
+
+        private static async Task DebouncedRedraw(nint objectAddress, CancellationToken token)
+        {
+            try
+            {
+                if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out var safetyCts))
+                {
+                    safetyCts.Cancel();
+                }
+
+                await Task.Delay(PRIMARY_DEBOUNCE_MILLISECONDS, token);
+
+                await PerformRedrawWithCooldown(objectAddress, token);
+            }
+            catch (TaskCanceledException) { /* Normal */ }
+            finally
+            {
+                if (PrimaryDebounceTokens.TryGetValue(objectAddress, out var currentCts) && currentCts.Token == token)
+                {
+                    PrimaryDebounceTokens.TryRemove(objectAddress, out _);
+                }
+            }
+        }
+
+        private static async Task PerformSafetyNetRedraw(nint objectAddress, CancellationToken token)
+        {
+            try
+            {
+                await Task.Delay(SAFETY_NET_MILLISECONDS, token);
+                await PerformRedrawWithCooldown(objectAddress, token);
+            }
+            catch (TaskCanceledException) { /* Normal */ }
+            finally
+            {
+                if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out var currentCts) && currentCts.Token == token)
+                {
+                    SafetyNetDebounceTokens.TryRemove(objectAddress, out _);
+                }
+            }
+        }
+
+        private static async Task PerformRedrawWithCooldown(nint objectAddress, CancellationToken token)
+        {
+            if (!CooldownLocks.TryAdd(objectAddress, true))
+            {
+                return;
+            }
+
+            try
+            {
+                if (token.IsCancellationRequested) return;
+
+                _ = Service.Framework.RunOnFrameworkThread(() => RefreshByAddress(objectAddress));
+
+                await Task.Delay(COOLDOWN_MILLISECONDS, token);
+            }
+            catch (TaskCanceledException) { /* This can still happen if a primary redraw cancels the safety net, which is correct. */ }
+            finally
+            {
+                CooldownLocks.TryRemove(objectAddress, out _);
+            }
+        }
+
+        private static void RefreshByAddress(nint objectAddress)
+        {
+            if (!Service.configuration.enabled)
+                return;
+
+            IGameObject? targetObject = null;
+            foreach (var obj in Service.objectTable)
+            {
+                if (obj.Address == objectAddress)
+                {
+                    targetObject = obj;
+                    break;
+                }
+            }
+
+            if (targetObject == null || !targetObject.IsValid() || targetObject is not ICharacter) return;
+            if (Service.configuration.IsWhitelisted(targetObject.Name.TextValue)) return;
+
+            bool isPc = targetObject is IPlayerCharacter;
+            bool isSelf = targetObject.ObjectIndex == 0;
+
+            if (Service.configuration.dontStripSelf && isSelf) return;
+            if (Service.configuration.dontStripPC && isPc && !isSelf) return;
+            if (Service.configuration.dontStripNPC && !isPc) return;
+
+            Service.penumbraApi.RedrawOne(targetObject.ObjectIndex, RedrawType.Redraw);
         }
 
         private static void RefreshAllPlayers(bool force)
