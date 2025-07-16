@@ -46,6 +46,7 @@ namespace OopsAllNudist
             _ = pluginInterface.Create<Service>();
             Service.plugin = this;
             Service.penumbraApi = new PenumbraIpc(pluginInterface);
+            Service.glamourerApi = new GlamourerService(pluginInterface);
             Service.configWindow = new ConfigWindow(this);
             Service.whitelistWindow = new WhitelistWindow(this);
             WindowSystem.AddWindow(Service.configWindow);
@@ -76,6 +77,7 @@ namespace OopsAllNudist
             WindowSystem.RemoveAllWindows();
 
             Service.penumbraApi?.Dispose();
+            Service.glamourerApi.Dispose();
             Service.drawer?.Dispose();
             Service.commandManager?.RemoveHandler(CommandName);
         }
