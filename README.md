@@ -14,10 +14,10 @@ Turn everyone around you naked (and some other things)
 Add<br />
 `https://raw.githubusercontent.com/tigurand/DalamudPlugins/refs/heads/main/repo.json`<br />
 and<br />
-`https://raw.githubusercontent.com/xivdev/Penumbra/master/repo.json`<br />
+`https://raw.githubusercontent.com/Ottermandias/SeaOfStars/main/repo.json`<br />
 to list of custom repo under Experimental tab in dalamud settings.  
-Install and enable Penumbra and OopsAllNudist.
+Install and enable Penumbra, Glamourer, and OopsAllNudist.
 
 ## ⚠️ READ THIS ⚠️
 
-- **Requirement**: This plugin requires [Penumbra](https://github.com/xivdev/Penumbra) (another Dalamud plugin) to be installed and active.
+- **Requirement**: This plugin requires [Penumbra](https://github.com/xivdev/Penumbra) and [Glamourer](https://github.com/Ottermandias/Glamourer) (another Dalamud plugin) to be installed and active.
