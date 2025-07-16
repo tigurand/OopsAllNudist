@@ -34,7 +34,7 @@ namespace OopsAllNudist
                 Service.pluginInterface.UiBuilder.DisableGposeUiHide = true;
                 Service.pluginInterface.UiBuilder.DisableUserUiHide = true;
             }
-            else 
+            else
             {
                 Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = false;
                 Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = false;

@@ -28,8 +28,7 @@ namespace OopsAllNudist.Utils
                 return;
             }
 
-            stateChangedSubscriber = StateChanged.Subscriber(pluginInterface, Drawer.OnGlamourerStateChanged);
-            Plugin.OutputChatLine("Hooked into Glamourer to trigger Penumbra redraws.");
+            stateChangedSubscriber = StateChanged.Subscriber(pluginInterface, Drawer.OnGlamourerStateChanged);            
         }
 
         public void Dispose()
