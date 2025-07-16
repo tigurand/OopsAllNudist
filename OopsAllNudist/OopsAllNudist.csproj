@@ -13,6 +13,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Glamourer.Api" Version="2.6.0" />
         <PackageReference Include="Penumbra.Api" Version="5.10.0" />
     </ItemGroup>
 </Project>
