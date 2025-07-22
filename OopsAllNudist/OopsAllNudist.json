@@ -5,7 +5,7 @@
     "Description": "Turn everyone around you into a nudist.",
     "InternalName": "OopsAllNudist",
     "ApplicableVersion": "any",
-    "Tags": [
-        "nudism"
-    ]
+    "Tags": ["nudism"],
+	"RepoUrl": "https://github.com/tigurand/OopsAllNudist",
+	"IconUrl": "https://raw.githubusercontent.com/tigurand/OopsAllNudist/refs/heads/main/image/icon.png"
 }
