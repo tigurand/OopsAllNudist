@@ -8,7 +8,8 @@ namespace OopsAllNudist.Utils
     internal class GlamourerService : IDisposable
     {
         private readonly ApiVersion apiVersion;
-        private readonly EventSubscriber<nint> stateChangedSubscriber;
+        private EventSubscriber<nint>? stateChangedSubscriber;
+        private readonly EventSubscriber initializedSubscriber;
 
         public bool IsAvailable { get; private set; }
 
@@ -16,24 +17,30 @@ namespace OopsAllNudist.Utils
         {
             apiVersion = new ApiVersion(pluginInterface);
 
+            initializedSubscriber = Initialized.Subscriber(pluginInterface, SubscribeToStateChanged);
+
             try
             {
                 IsAvailable = apiVersion.Invoke().Major >= 1;
+                if (IsAvailable)
+                {
+                    SubscribeToStateChanged();
+                }
             }
             catch { IsAvailable = false; }
+        }
 
-            if (!IsAvailable)
-            {
-                stateChangedSubscriber = new EventSubscriber<nint>(pluginInterface, "Glamourer.DummyEvent", Array.Empty<Action<nint>>());
-                return;
-            }
+        private void SubscribeToStateChanged()
+        {
+            stateChangedSubscriber?.Dispose();
 
-            stateChangedSubscriber = StateChanged.Subscriber(pluginInterface, Drawer.OnGlamourerStateChanged);            
+            stateChangedSubscriber = StateChanged.Subscriber(Service.pluginInterface, Drawer.OnGlamourerStateChanged);
         }
 
         public void Dispose()
         {
-            stateChangedSubscriber.Dispose();
+            stateChangedSubscriber?.Dispose();
+            initializedSubscriber.Dispose();
         }
     }
 }
