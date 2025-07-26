@@ -1,28 +1,17 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using Glamourer.Api.Enums;
 using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using static OopsAllNudist.Utils.Constant;
 
 namespace OopsAllNudist.Utils
 {
     internal class Drawer : IDisposable
     {
-        private static readonly ConcurrentDictionary<nint, CancellationTokenSource> PrimaryDebounceTokens = new();
-        private const int PRIMARY_DEBOUNCE_MILLISECONDS = 350;
-
-        private static readonly ConcurrentDictionary<nint, CancellationTokenSource> SafetyNetDebounceTokens = new();
-        private const int SAFETY_NET_MILLISECONDS = 2000;
-
-        private static readonly ConcurrentDictionary<nint, bool> CooldownLocks = new();
-        private const int COOLDOWN_MILLISECONDS = 1500;
-
         public Drawer()
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
@@ -32,147 +21,6 @@ namespace OopsAllNudist.Utils
                 Plugin.OutputChatLine("OopsAllNudist starting...");
                 RefreshAllPlayers(false);
             }
-        }
-
-        public static void OnGlamourerStateChanged(nint objectAddress)
-        {
-            if (!Service.configuration.enabled)
-                return;
-
-            if (CooldownLocks.ContainsKey(objectAddress))
-            {
-                if (!SafetyNetDebounceTokens.ContainsKey(objectAddress))
-                {
-                    ScheduleSafetyNetRedraw(objectAddress);
-                }
-                return;
-            }
-
-            StartOrResetPrimaryDebounce(objectAddress);
-        }
-
-        private static void StartOrResetPrimaryDebounce(nint objectAddress)
-        {
-            if (PrimaryDebounceTokens.TryGetValue(objectAddress, out var oldCts))
-            {
-                oldCts.Cancel();
-            }
-
-            var newCts = new CancellationTokenSource();
-            if (!PrimaryDebounceTokens.TryAdd(objectAddress, newCts))
-            {
-                if (PrimaryDebounceTokens.TryGetValue(objectAddress, out oldCts)) oldCts.Cancel();
-                PrimaryDebounceTokens[objectAddress] = newCts;
-            }
-
-            _ = DebouncedRedraw(objectAddress, newCts.Token);
-        }
-
-        private static void ScheduleSafetyNetRedraw(nint objectAddress)
-        {
-            if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out var oldCts))
-            {
-                oldCts.Cancel();
-            }
-
-            var newCts = new CancellationTokenSource();
-            if (!SafetyNetDebounceTokens.TryAdd(objectAddress, newCts))
-            {
-                if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out oldCts)) oldCts.Cancel();
-                SafetyNetDebounceTokens[objectAddress] = newCts;
-            }
-
-            _ = PerformSafetyNetRedraw(objectAddress, newCts.Token);
-        }
-
-        private static async Task DebouncedRedraw(nint objectAddress, CancellationToken token)
-        {
-            try
-            {
-                if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out var safetyCts))
-                {
-                    safetyCts.Cancel();
-                }
-
-                await Task.Delay(PRIMARY_DEBOUNCE_MILLISECONDS, token);
-
-                await PerformRedrawWithCooldown(objectAddress, token);
-            }
-            catch (TaskCanceledException) { /* Normal */ }
-            finally
-            {
-                if (PrimaryDebounceTokens.TryGetValue(objectAddress, out var currentCts) && currentCts.Token == token)
-                {
-                    PrimaryDebounceTokens.TryRemove(objectAddress, out _);
-                }
-            }
-        }
-
-        private static async Task PerformSafetyNetRedraw(nint objectAddress, CancellationToken token)
-        {
-            try
-            {
-                await Task.Delay(SAFETY_NET_MILLISECONDS, token);
-                await PerformRedrawWithCooldown(objectAddress, token);
-            }
-            catch (TaskCanceledException) { /* Normal */ }
-            finally
-            {
-                if (SafetyNetDebounceTokens.TryGetValue(objectAddress, out var currentCts) && currentCts.Token == token)
-                {
-                    SafetyNetDebounceTokens.TryRemove(objectAddress, out _);
-                }
-            }
-        }
-
-        private static async Task PerformRedrawWithCooldown(nint objectAddress, CancellationToken token)
-        {
-            if (!CooldownLocks.TryAdd(objectAddress, true))
-            {
-                return;
-            }
-
-            try
-            {
-                if (token.IsCancellationRequested) return;
-
-                _ = Service.Framework.RunOnFrameworkThread(() => RefreshByAddress(objectAddress));
-
-                await Task.Delay(COOLDOWN_MILLISECONDS, token);
-            }
-            catch (TaskCanceledException) { /* This can still happen if a primary redraw cancels the safety net, which is correct. */ }
-            finally
-            {
-                CooldownLocks.TryRemove(objectAddress, out _);
-            }
-        }
-
-        private static void RefreshByAddress(nint objectAddress)
-        {
-            if (!Service.configuration.enabled)
-                return;
-
-            IGameObject? targetObject = null;
-            foreach (var obj in Service.objectTable)
-            {
-                if (obj.Address == objectAddress)
-                {
-                    targetObject = obj;
-                    break;
-                }
-            }
-
-            if (targetObject == null || !targetObject.IsValid() || targetObject is not ICharacter) return;
-            if (Service.configuration.IsWhitelisted(targetObject.Name.TextValue)) return;
-
-            bool isPc = targetObject is IPlayerCharacter;
-            bool isSelf = targetObject.ObjectIndex == 0;
-
-            if (Service.configuration.dontStripSelf && isSelf) return;
-            if (Service.configuration.dontStripPC && isPc && !isSelf) return;
-            if (Service.configuration.dontStripNPC && !isPc) return;
-
-            Service.penumbraApi.RedrawOne(targetObject.ObjectIndex, RedrawType.Redraw);
         }
 
         private static void RefreshAllPlayers(bool force)
@@ -189,11 +37,19 @@ namespace OopsAllNudist.Utils
 
                     bool isPc = obj is IPlayerCharacter;
                     // Make sure the value for isSelf is the same as the one in OnCreatingCharacterBase
-                    bool isSelf = isPc && (obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 205) || obj.ObjectIndex == 440 || obj.ObjectIndex == 442 || obj.ObjectIndex == 443);
+                    bool isSelf = isPc && (obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 205) || (obj.ObjectIndex >= 440 && obj.ObjectIndex <= 448));
                     if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
                     if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                     if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
 
+                    if (!Service.configuration.enabled)
+                    {
+                        if (obj.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
+                        {
+                            Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                            Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                        }
+                    }
                     Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
                 }
             });
@@ -205,6 +61,7 @@ namespace OopsAllNudist.Utils
                 return;
 
             int objectIndex = -1;
+            Dalamud.Game.ClientState.Objects.Enums.ObjectKind objectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.None;
 
             Service.Framework.RunOnFrameworkThread(() =>
             {
@@ -214,6 +71,7 @@ namespace OopsAllNudist.Utils
                     if (obj is not ICharacter) continue;
                     if (obj.Name.TextValue != charName) continue;
                     objectIndex = obj.ObjectIndex;
+                    objectKind = obj.ObjectKind;
                     break;
                 }
             });
@@ -221,13 +79,19 @@ namespace OopsAllNudist.Utils
             if (objectIndex == -1)
                 return;
 
+            if (!Service.configuration.enabled)
+            {
+                if (objectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
+                {
+                    Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                    Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                }
+            }
             Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
         }
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
         {
-            if (!Service.configuration.enabled) return;
-
             var gameObj = (GameObject*)gameObjectAddress;
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             var equipData = (ulong*)equipPtr;
@@ -236,7 +100,17 @@ namespace OopsAllNudist.Utils
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
             // Make sure the value for isSelf is the same as the one in RefreshAllPlayers
-            bool isSelf = isPc && (gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || gameObj->ObjectIndex == 440 || gameObj->ObjectIndex == 442 || gameObj->ObjectIndex == 443);
+            bool isSelf = isPc && (gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || (gameObj->ObjectIndex >= 440 && gameObj->ObjectIndex <= 448));
+
+            var revertState = Service.glamourerApi?.RevertStateApi;
+            if (revertState == null)
+            {
+                return;
+            }
+            if (gameObj->ObjectKind != ObjectKind.Companion)
+                revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
+
+            if (!Service.configuration.enabled) return;
 
             if (Service.configuration.debugMode)
             {
@@ -317,7 +191,11 @@ namespace OopsAllNudist.Utils
             }
 
             if (!dontStrip)
+            {
                 StripClothes(equipData, isSelf);
+                if (isPc)
+                    StripClothes(gameObj->ObjectIndex, isSelf);
+            }
         }
 
         private static unsafe void ChangeRace(CharaCustomizeData customData, nint customizePtr, Race selectedRace, Gender selectedGender)
@@ -366,8 +244,7 @@ namespace OopsAllNudist.Utils
         {
             Random rnd = new Random();
             int empRnd = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
-            //if (Service.configuration.stripHats) equipData[0] = 0;
-            if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 1U : 0; //if there is any problem later, change back to 279U
+            if (Service.configuration.stripHats) equipData[0] = 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
             if (Service.configuration.stripLegs) equipData[3] = Service.configuration.empLegs ? (Service.configuration.empLegsRandom ? (empRnd == 0 ? 0 : 279U) : 279U) : 0;
@@ -376,6 +253,82 @@ namespace OopsAllNudist.Utils
             {
                 for (int i = 5; i <= 9; ++i)
                     equipData[i] = 0;
+            }
+        }
+
+        private static void StripClothes(int objectIndex, bool isSelf)
+        {
+            if (Service.glamourerApi?.SetItemApi == null) return;
+
+            var setItem = Service.glamourerApi.SetItemApi;
+
+            var noStains = new System.Collections.Generic.List<byte>();
+
+            var accessorySlots = new[]
+            {
+                ApiEquipSlot.Ears,
+                ApiEquipSlot.Neck,
+                ApiEquipSlot.Wrists,
+                ApiEquipSlot.RFinger,
+                ApiEquipSlot.LFinger,
+            };
+
+            if (Service.configuration.stripHats)
+            {
+                setItem.Invoke(objectIndex, ApiEquipSlot.Head, 0, noStains, 0, 0);
+            }
+            if (Service.configuration.stripBodies)
+            {
+                setItem.Invoke(objectIndex, ApiEquipSlot.Body, 0, noStains, 0, 0);
+            }
+            if (Service.configuration.stripGloves)
+            {
+                setItem.Invoke(objectIndex, ApiEquipSlot.Hands, 0, noStains, 0, 0);
+            }
+            if (Service.configuration.stripBoots)
+            {
+                setItem.Invoke(objectIndex, ApiEquipSlot.Feet, 0, noStains, 0, 0);
+            }
+            if (Service.configuration.stripLegs)
+            {
+                uint legId = 0;
+
+                if (Service.configuration.empLegs)
+                {
+                    if (Service.configuration.empLegsRandom)
+                    {
+                        Random rnd = new Random();
+
+                        if (isSelf)
+                        {
+                            if (Service.configuration.empLegsRandomSelf)
+                            {
+                                legId = (rnd.Next(2) == 1) ? 10035U : 0;
+                            }
+                            else
+                            {
+                                legId = 0;
+                            }
+                        }
+                        else
+                        {
+                            legId = (rnd.Next(2) == 1) ? 10035U : 0;
+                        }
+                    }
+                    else
+                    {
+                        legId = 10035U;
+                    }
+                }
+
+                setItem.Invoke(objectIndex, ApiEquipSlot.Legs, legId, noStains, 0, 0);
+            }
+            if (Service.configuration.stripAccessories)
+            {
+                foreach (var slot in accessorySlots)
+                {
+                    setItem.Invoke(objectIndex, slot, 0, noStains, 0, 0);
+                }
             }
         }
 
