@@ -244,7 +244,7 @@ namespace OopsAllNudist.Utils
         {
             Random rnd = new Random();
             int empRnd = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
-            if (Service.configuration.stripHats) equipData[0] = 0;
+            if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 1U : 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
             if (Service.configuration.stripLegs) equipData[3] = Service.configuration.empLegs ? (Service.configuration.empLegsRandom ? (empRnd == 0 ? 0 : 279U) : 279U) : 0;
