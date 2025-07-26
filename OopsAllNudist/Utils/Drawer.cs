@@ -269,7 +269,7 @@ namespace OopsAllNudist.Utils
                             {
                                 case "Alphinaud":
                                     customData.FaceType = 1;
-                                    customData.HairStyle = 174;
+                                    customData.HairStyle = 169;
                                     break;
                                 case "Alisaie":
                                     customData.FaceType = 4;
