@@ -36,7 +36,7 @@ namespace OopsAllNudist.Utils
                     if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
                     if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
-                        return;
+                        continue;
 
                     bool isPc = obj is IPlayerCharacter;
                     // Make sure the value for isSelf is the same as the one in OnCreatingCharacterBase
@@ -45,11 +45,8 @@ namespace OopsAllNudist.Utils
                     if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                     if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
 
-                    if (!Service.configuration.enabled)
-                    {
-                        Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
-                        Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
-                    }
+                    Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                    Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
                     Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
                 }
             });
@@ -82,21 +79,24 @@ namespace OopsAllNudist.Utils
             if (objectIndex == -1)
                 return;
 
-            if (!Service.configuration.enabled)
-            {
-                Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-                Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-            }
+            Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+            Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
             Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
         }
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
         {
+            if (!Service.configuration.enabled) return;
+
             var gameObj = (GameObject*)gameObjectAddress;
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             var equipData = (ulong*)equipPtr;
             var charName = gameObj->NameString;
             string[] childNPCNames = { "Alphinaud", "Alisaie" };
+
+            var revertState = Service.glamourerApi?.RevertStateApi;
+            if (revertState == null)
+                return;
 
             if (gameObj->ObjectKind == ObjectKind.Companion)
                 return;
@@ -104,13 +104,6 @@ namespace OopsAllNudist.Utils
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
             // Make sure the value for isSelf is the same as the one in RefreshAllPlayers
             bool isSelf = isPc && (gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || (gameObj->ObjectIndex >= 440 && gameObj->ObjectIndex <= 448));
-
-            var revertState = Service.glamourerApi?.RevertStateApi;
-            if (revertState == null)
-                return;
-            revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
-
-            if (!Service.configuration.enabled) return;
 
             if (Service.configuration.debugMode)
             {
@@ -126,6 +119,8 @@ namespace OopsAllNudist.Utils
 
             if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                 return;
+
+            revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
 
             if (Service.configuration.noChild)
             {
