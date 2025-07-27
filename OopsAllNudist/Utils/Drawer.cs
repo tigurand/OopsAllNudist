@@ -35,6 +35,9 @@ namespace OopsAllNudist.Utils
                     if (obj is not ICharacter) continue;
                     if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
+                    if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
+                        return;
+
                     bool isPc = obj is IPlayerCharacter;
                     // Make sure the value for isSelf is the same as the one in OnCreatingCharacterBase
                     bool isSelf = isPc && (obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 205) || (obj.ObjectIndex >= 440 && obj.ObjectIndex <= 448));
@@ -44,11 +47,8 @@ namespace OopsAllNudist.Utils
 
                     if (!Service.configuration.enabled)
                     {
-                        if (obj.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
-                        {
-                            Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
-                            Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
-                        }
+                        Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                        Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
                     }
                     Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
                 }
@@ -76,16 +76,16 @@ namespace OopsAllNudist.Utils
                 }
             });
 
+            if (objectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
+                return;
+
             if (objectIndex == -1)
                 return;
 
             if (!Service.configuration.enabled)
             {
-                if (objectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
-                {
-                    Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-                    Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-                }
+                Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
             }
             Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
         }
@@ -98,17 +98,17 @@ namespace OopsAllNudist.Utils
             var charName = gameObj->NameString;
             string[] childNPCNames = { "Alphinaud", "Alisaie" };
 
+            if (gameObj->ObjectKind == ObjectKind.Companion)
+                return;
+
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
             // Make sure the value for isSelf is the same as the one in RefreshAllPlayers
             bool isSelf = isPc && (gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || (gameObj->ObjectIndex >= 440 && gameObj->ObjectIndex <= 448));
 
             var revertState = Service.glamourerApi?.RevertStateApi;
             if (revertState == null)
-            {
                 return;
-            }
-            if (gameObj->ObjectKind != ObjectKind.Companion)
-                revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
+            revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
 
             if (!Service.configuration.enabled) return;
 
