@@ -5,6 +5,7 @@ using Glamourer.Api.Enums;
 using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using static OopsAllNudist.Utils.Constant;
 
@@ -12,6 +13,7 @@ namespace OopsAllNudist.Utils
 {
     internal class Drawer : IDisposable
     {
+        public static HashSet<uint> ModifiedActorIds = new HashSet<uint>();
         public Drawer()
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
@@ -23,7 +25,7 @@ namespace OopsAllNudist.Utils
             }
         }
 
-        private static void RefreshAllPlayers(bool force)
+        public static void RefreshAllPlayers(bool force)
         {
             Plugin.OutputChatLine("Refreshing all players");
 
@@ -98,9 +100,16 @@ namespace OopsAllNudist.Utils
             var revertState = Service.glamourerApi?.RevertStateApi;
             if (revertState == null)
                 return;
-            revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
 
-            if (!Service.configuration.enabled) return;
+            if (!Service.configuration.enabled)
+            {
+                if (ModifiedActorIds.Contains(gameObj->ObjectIndex))
+                {
+                    revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
+                    ModifiedActorIds.Remove(gameObj->ObjectIndex);
+                }
+                return;
+            }
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
             // Make sure the value for isSelf is the same as the one in RefreshAllPlayers
@@ -186,6 +195,8 @@ namespace OopsAllNudist.Utils
 
             if (!dontStrip)
             {
+                ModifiedActorIds.Add(gameObj->ObjectIndex);
+
                 StripClothes(equipData, isSelf);
                 if (isPc)
                     StripClothes(gameObj->ObjectIndex, isSelf);
