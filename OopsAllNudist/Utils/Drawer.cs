@@ -2,10 +2,12 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Glamourer.Api.Enums;
+using Glamourer.Api.IpcSubscribers;
 using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using static OopsAllNudist.Utils.Constant;
 
@@ -18,10 +20,26 @@ namespace OopsAllNudist.Utils
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             Service.configWindow.OnConfigChangedSingleChar += RefreshOnePlayer;
+            StateFinalized.Subscriber(Service.pluginInterface, OnGlamourerStateChange);
+
             if (Service.configuration.enabled)
             {
                 Plugin.OutputChatLine("OopsAllNudist starting...");
                 RefreshAllPlayers(false);
+            }
+        }
+
+        private void OnGlamourerStateChange(nint actorPtr, StateFinalizationType type)
+        {
+            var actor = Service.objectTable.FirstOrDefault(o => o.Address == actorPtr);
+
+            if (actor != null)
+            {
+                if (Service.configuration.debugMode)
+                {
+                    Plugin.OutputChatLine($"Glamourer change ({type}) detected on {actor.Name}. Redrawing.");
+                }
+                Service.penumbraApi.RedrawOne(actor.ObjectIndex, RedrawType.Redraw);
             }
         }
 
