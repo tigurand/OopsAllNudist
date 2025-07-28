@@ -92,15 +92,15 @@ namespace OopsAllNudist.Utils
             var charName = gameObj->NameString;
             string[] childNPCNames = { "Alphinaud", "Alisaie" };
 
+            if (gameObj->ObjectKind == ObjectKind.Companion)
+                return;
+
             var revertState = Service.glamourerApi?.RevertStateApi;
             if (revertState == null)
                 return;
             revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
 
             if (!Service.configuration.enabled) return;
-
-            if (gameObj->ObjectKind == ObjectKind.Companion)
-                return;
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
             // Make sure the value for isSelf is the same as the one in RefreshAllPlayers
