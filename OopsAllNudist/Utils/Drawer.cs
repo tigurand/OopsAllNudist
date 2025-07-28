@@ -86,8 +86,6 @@ namespace OopsAllNudist.Utils
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
         {
-            if (!Service.configuration.enabled) return;
-
             var gameObj = (GameObject*)gameObjectAddress;
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             var equipData = (ulong*)equipPtr;
@@ -97,6 +95,9 @@ namespace OopsAllNudist.Utils
             var revertState = Service.glamourerApi?.RevertStateApi;
             if (revertState == null)
                 return;
+            revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
+
+            if (!Service.configuration.enabled) return;
 
             if (gameObj->ObjectKind == ObjectKind.Companion)
                 return;
@@ -119,8 +120,6 @@ namespace OopsAllNudist.Utils
 
             if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                 return;
-
-            revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
 
             if (Service.configuration.noChild)
             {
