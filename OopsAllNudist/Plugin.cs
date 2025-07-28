@@ -72,7 +72,7 @@ namespace OopsAllNudist
 
         public void Dispose()
         {
-            Service.penumbraApi?.RedrawAll(RedrawType.Redraw);
+            Drawer.RefreshAllPlayers(false);
 
             WindowSystem.RemoveAllWindows();
 
