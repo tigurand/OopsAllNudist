@@ -16,17 +16,56 @@ namespace OopsAllNudist.Utils
     internal class Drawer : IDisposable
     {
         public static HashSet<uint> ModifiedActorIds = new HashSet<uint>();
+        private readonly IDisposable glamourerSubscription;
         public Drawer()
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             Service.configWindow.OnConfigChangedSingleChar += RefreshOnePlayer;
-            StateFinalized.Subscriber(Service.pluginInterface, OnGlamourerStateChange);
+            glamourerSubscription = StateFinalized.Subscriber(Service.pluginInterface, OnGlamourerStateChange);
 
             if (Service.configuration.enabled)
             {
                 Plugin.OutputChatLine("OopsAllNudist starting...");
                 RefreshAllPlayers(false);
             }
+        }
+
+        private static bool IsSelfOrPlayerClone(IGameObject? character, IPlayerCharacter? localPlayer)
+        {
+            if (!Service.clientState.IsLoggedIn)
+                return true;
+
+            if (character == null || localPlayer == null)
+                return false;
+
+            if (character.Address == localPlayer.Address)
+                return true;
+
+            if (character.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
+                return false;
+
+            uint objectIndex = character.ObjectIndex;
+            bool isPotentialClone = (objectIndex >= 200 && objectIndex < 240) || (objectIndex >= 440 && objectIndex < 460);
+            if (!isPotentialClone)
+                return false;
+
+            var targetCustomize = (character as ICharacter)?.Customize;
+            var localCustomize = localPlayer.Customize;
+
+            if (targetCustomize == null || localCustomize == null || targetCustomize.Length < 26 || localCustomize.Length < 26)
+                return false;
+
+            return targetCustomize[0] == localCustomize[0] &&
+                   targetCustomize[1] == localCustomize[1] &&
+                   targetCustomize[4] == localCustomize[4] &&
+                   targetCustomize[5] == localCustomize[5] &&
+                   targetCustomize[6] == localCustomize[6] &&
+                   targetCustomize[8] == localCustomize[8] &&
+                   targetCustomize[9] == localCustomize[9] &&
+                   targetCustomize[10] == localCustomize[10] &&
+                   targetCustomize[11] == localCustomize[11] &&
+                   targetCustomize[15] == localCustomize[15] &&
+                   targetCustomize[20] == localCustomize[20];
         }
 
         private void OnGlamourerStateChange(nint actorPtr, StateFinalizationType type)
@@ -49,6 +88,8 @@ namespace OopsAllNudist.Utils
 
             Service.Framework.RunOnFrameworkThread(() =>
             {
+                var localPlayer = Service.clientState.LocalPlayer;
+
                 foreach (var obj in Service.objectTable)
                 {
                     if (!obj.IsValid()) continue;
@@ -59,8 +100,8 @@ namespace OopsAllNudist.Utils
                         continue;
 
                     bool isPc = obj is IPlayerCharacter;
-                    // Make sure the value for isSelf is the same as the one in OnCreatingCharacterBase
-                    bool isSelf = isPc && (obj.ObjectIndex == 0 || (obj.ObjectIndex >= 200 && obj.ObjectIndex <= 205) || (obj.ObjectIndex >= 440 && obj.ObjectIndex <= 448));
+                    bool isSelf = IsSelfOrPlayerClone(obj, localPlayer);
+
                     if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
                     if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                     if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
@@ -106,6 +147,9 @@ namespace OopsAllNudist.Utils
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
         {
+            var localPlayer = Service.clientState.LocalPlayer;
+            var characterObject = Service.objectTable.FirstOrDefault(o => o.Address == gameObjectAddress);
+
             var gameObj = (GameObject*)gameObjectAddress;
             var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
             var equipData = (ulong*)equipPtr;
@@ -130,13 +174,13 @@ namespace OopsAllNudist.Utils
             }
 
             bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            // Make sure the value for isSelf is the same as the one in RefreshAllPlayers
-            bool isSelf = isPc && (gameObj->ObjectIndex == 0 || (gameObj->ObjectIndex >= 200 && gameObj->ObjectIndex <= 205) || (gameObj->ObjectIndex >= 440 && gameObj->ObjectIndex <= 448));
+            bool isSelf = IsSelfOrPlayerClone(characterObject, localPlayer);
 
             if (Service.configuration.debugMode)
             {
                 Plugin.OutputChatLine("Name: " + charName);
                 Plugin.OutputChatLine("ObjectIndex: " + gameObj->ObjectIndex);
+                Plugin.OutputChatLine("ObjectKind: " + gameObj->ObjectKind);
                 Plugin.OutputChatLine("ModelType: " + customData.ModelType);
                 Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
             }
@@ -285,7 +329,7 @@ namespace OopsAllNudist.Utils
 
             var setItem = Service.glamourerApi.SetItemApi;
 
-            var noStains = new System.Collections.Generic.List<byte>();
+            var noStains = new List<byte>();
 
             var accessorySlots = new[]
             {
@@ -359,6 +403,7 @@ namespace OopsAllNudist.Utils
         {
             Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
             Service.configWindow.OnConfigChangedSingleChar -= RefreshOnePlayer;
+            glamourerSubscription?.Dispose();
         }
     }
 }
