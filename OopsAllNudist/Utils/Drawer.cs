@@ -310,11 +310,34 @@ namespace OopsAllNudist.Utils
         private static unsafe void StripClothes(ulong* equipData, bool isSelf)
         {
             Random rnd = new Random();
-            int empRnd = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
+            int isEmperor = 0;
+            if (Service.configuration.empLegs)
+            {
+                if (Service.configuration.empLegsRandom)
+                {
+                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 1 : rnd.Next(2)) : rnd.Next(2);
+                }
+                else
+                {
+                    isEmperor = 1;
+                }
+            }
+            else
+            {
+                if (Service.configuration.empLegsRandom)
+                {
+                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
+                }
+                else
+                {
+                    isEmperor = 0;
+                }
+            }
+
             if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 1U : 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
             if (Service.configuration.stripGloves) equipData[2] = 0;
-            if (Service.configuration.stripLegs) equipData[3] = Service.configuration.empLegs ? (Service.configuration.empLegsRandom ? (empRnd == 0 ? 0 : 279U) : 279U) : 0;
+            if (Service.configuration.stripLegs) equipData[3] = (isEmperor == 0 ? 0 : 279U);
             if (Service.configuration.stripBoots) equipData[4] = 0;
             if (Service.configuration.stripAccessories)
             {

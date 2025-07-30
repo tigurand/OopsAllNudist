@@ -11,7 +11,6 @@ internal class WhitelistWindow : Window
 
     public WhitelistWindow(Plugin plugin) : base(
         "OopsAllNudist Whitelist")
-    //ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse)
     {
         SizeConstraints = new WindowSizeConstraints
         {

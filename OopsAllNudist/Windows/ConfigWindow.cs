@@ -28,8 +28,6 @@ internal class ConfigWindow : Window
     public ConfigWindow(Plugin plugin) : base(
         "OopsAllNudist Configuration Window",
         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize)
-    //ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoScrollbar |
-    //ImGuiWindowFlags.NoScrollWithMouse)
     {
         configuration = Service.configuration;
 
@@ -263,12 +261,6 @@ internal class ConfigWindow : Window
         if (ImGui.Checkbox("Strip Legs", ref _stripLegs))
         {
             configuration.stripLegs = _stripLegs;
-            if (configuration.stripLegs == false)
-            {
-                configuration.empLegs = false;
-                configuration.empLegsRandom = false;
-                configuration.empLegsRandomSelf = false;
-            }
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged();
@@ -281,27 +273,18 @@ internal class ConfigWindow : Window
         if (ImGui.Checkbox("Emperor's", ref _empLegs))
         {
             configuration.empLegs = _empLegs;
-            if (configuration.empLegs == false)
-            {
-                configuration.empLegsRandom = false;
-                configuration.empLegsRandomSelf = false;
-            }
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged();
         }
         Tooltip("Use Emperor's New Legs.");
-        ImGui.EndDisabled();
 
-        ImGui.BeginDisabled(!configuration.empLegs);
         ImGui.SameLine();
         ImGui.SetCursorPosX(240.0f);
         bool _empLegsRandom = configuration.empLegsRandom;
         if (ImGui.Checkbox("Random", ref _empLegsRandom))
         {
             configuration.empLegsRandom = _empLegsRandom;
-            if (configuration.empLegsRandom == false)
-                configuration.empLegsRandomSelf = false;
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged();
@@ -309,7 +292,7 @@ internal class ConfigWindow : Window
         Tooltip("Randomly Use Emperor's New Legs.");
         ImGui.EndDisabled();
 
-        ImGui.BeginDisabled(!configuration.empLegsRandom);
+        ImGui.BeginDisabled(!configuration.stripLegs || !configuration.empLegsRandom);
         ImGui.SameLine();
         ImGui.SetCursorPosX(360.0f);
         bool _empLegsRandomSelf = configuration.empLegsRandomSelf;
