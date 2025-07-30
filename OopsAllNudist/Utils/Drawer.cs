@@ -309,30 +309,7 @@ namespace OopsAllNudist.Utils
 
         private static unsafe void StripClothes(ulong* equipData, bool isSelf)
         {
-            Random rnd = new Random();
-            int isEmperor = 0;
-            if (Service.configuration.empLegs)
-            {
-                if (Service.configuration.empLegsRandom)
-                {
-                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 1 : rnd.Next(2)) : rnd.Next(2);
-                }
-                else
-                {
-                    isEmperor = 1;
-                }
-            }
-            else
-            {
-                if (Service.configuration.empLegsRandom)
-                {
-                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
-                }
-                else
-                {
-                    isEmperor = 0;
-                }
-            }
+            int isEmperor = CheckRandom(isSelf);
 
             if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 1U : 0;
             if (Service.configuration.stripBodies) equipData[1] = 0;
@@ -363,6 +340,8 @@ namespace OopsAllNudist.Utils
                 ApiEquipSlot.LFinger,
             };
 
+            int isEmperor = CheckRandom(isSelf);
+
             if (Service.configuration.stripHats)
             {
                 setItem.Invoke(objectIndex, ApiEquipSlot.Head, 0, noStains, 0, 0);
@@ -381,37 +360,7 @@ namespace OopsAllNudist.Utils
             }
             if (Service.configuration.stripLegs)
             {
-                uint legId = 0;
-
-                if (Service.configuration.empLegs)
-                {
-                    if (Service.configuration.empLegsRandom)
-                    {
-                        Random rnd = new Random();
-
-                        if (isSelf)
-                        {
-                            if (Service.configuration.empLegsRandomSelf)
-                            {
-                                legId = (rnd.Next(2) == 1) ? 10035U : 0;
-                            }
-                            else
-                            {
-                                legId = 0;
-                            }
-                        }
-                        else
-                        {
-                            legId = (rnd.Next(2) == 1) ? 10035U : 0;
-                        }
-                    }
-                    else
-                    {
-                        legId = 10035U;
-                    }
-                }
-
-                setItem.Invoke(objectIndex, ApiEquipSlot.Legs, legId, noStains, 0, 0);
+                setItem.Invoke(objectIndex, ApiEquipSlot.Legs, (isEmperor == 0) ? 0 : 10035U, noStains, 0, 0);
             }
             if (Service.configuration.stripAccessories)
             {
@@ -420,6 +369,35 @@ namespace OopsAllNudist.Utils
                     setItem.Invoke(objectIndex, slot, 0, noStains, 0, 0);
                 }
             }
+        }
+
+        private static int CheckRandom(bool isSelf)
+        {
+            Random rnd = new Random();
+            int isEmperor = 0;
+            if (Service.configuration.empLegs)
+            {
+                if (Service.configuration.empLegsRandom)
+                {
+                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 1 : rnd.Next(2)) : rnd.Next(2);
+                }
+                else
+                {
+                    isEmperor = 1;
+                }
+            }
+            else
+            {
+                if (Service.configuration.empLegsRandom)
+                {
+                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
+                }
+                else
+                {
+                    isEmperor = 0;
+                }
+            }
+            return isEmperor;
         }
 
         public void Dispose()
