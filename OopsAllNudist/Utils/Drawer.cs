@@ -91,65 +91,79 @@ namespace OopsAllNudist.Utils
 
         public static void RefreshAllPlayers(bool force)
         {
-            Plugin.OutputChatLine("Refreshing all players");
-
-            Service.Framework.RunOnFrameworkThread(() =>
+            try
             {
-                var localPlayer = Service.clientState.LocalPlayer;
+                Plugin.OutputChatLine("Refreshing all players");
 
-                foreach (var obj in Service.objectTable)
+                Service.Framework.RunOnFrameworkThread(() =>
                 {
-                    if (!obj.IsValid()) continue;
-                    if (obj is not ICharacter) continue;
-                    if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
+                    var localPlayer = Service.clientState.LocalPlayer;
 
-                    if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
-                        continue;
+                    foreach (var obj in Service.objectTable)
+                    {
+                        if (!obj.IsValid()) continue;
+                        if (obj is not ICharacter) continue;
+                        if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
-                    bool isPc = obj is IPlayerCharacter;
-                    bool isSelf = IsSelfOrPlayerClone(obj, localPlayer);
+                        if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
+                            continue;
 
-                    if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
-                    if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
-                    if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
+                        bool isPc = obj is IPlayerCharacter;
+                        bool isSelf = IsSelfOrPlayerClone(obj, localPlayer);
 
-                    Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
-                    Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
-                    Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
-                }
-            });
+                        if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
+                        if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
+                        if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
+
+                        Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                        Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                        Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error($"Error while refreshing all players: {ex.Message}");
+            }
         }
 
         private static void RefreshOnePlayer(string charName)
         {
-            if (!Service.configuration.enabled)
-                return;
-
-            int objectIndex = -1;
-            Dalamud.Game.ClientState.Objects.Enums.ObjectKind objectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.None;
-
-            Service.Framework.RunOnFrameworkThread(() =>
+            try
             {
-                foreach (var obj in Service.objectTable)
+                if (!Service.configuration.enabled)
+                    return;
+
+                int objectIndex = -1;
+                Dalamud.Game.ClientState.Objects.Enums.ObjectKind objectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.None;
+
+                Service.Framework.RunOnFrameworkThread(() =>
                 {
-                    if (!obj.IsValid()) continue;
-                    if (obj is not ICharacter) continue;
-                    if (obj.Name.TextValue != charName) continue;
-                    objectIndex = obj.ObjectIndex;
-                    objectKind = obj.ObjectKind;
-                    break;
-                }
-            });
+                    foreach (var obj in Service.objectTable)
+                    {
+                        if (!obj.IsValid()) continue;
+                        if (obj is not ICharacter) continue;
+                        if (obj.Name.TextValue != charName) continue;
+                        objectIndex = obj.ObjectIndex;
+                        objectKind = obj.ObjectKind;
+                        break;
+                    }
+                });
 
-            if (objectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
-                return;
+                if (objectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
+                    return;
 
-            if (objectIndex == -1)
-                return;
+                if (objectIndex == -1)
+                    return;
 
-            Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-            Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-            Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
+                Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error($"Error while refreshing player {charName}: {ex.Message}");
+            }
         }
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
