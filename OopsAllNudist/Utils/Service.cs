@@ -22,6 +22,5 @@ internal class Service
     [PluginService] public static IObjectTable objectTable { get; private set; } = null!;
     [PluginService] public static ITargetManager targetManager { get; private set; } = null!;
     [PluginService] public static IFramework Framework { get; private set; } = null!;
-
     [PluginService] public static IPluginLog Log { get; private set; } = null!;
 }

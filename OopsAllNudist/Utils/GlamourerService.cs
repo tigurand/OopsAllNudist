@@ -7,6 +7,7 @@ namespace OopsAllNudist.Utils
     internal class GlamourerService : IDisposable
     {
         public SetItem? SetItemApi { get; private set; }
+        public GetState? GetStateApi { get; private set; }
         public RevertState? RevertStateApi { get; private set; }
         public RevertToAutomation? RevertToAutomationApi { get; private set; }
         public bool IsAvailable { get; private set; }
@@ -14,6 +15,7 @@ namespace OopsAllNudist.Utils
         public GlamourerService(IDalamudPluginInterface pluginInterface)
         {
             SetItemApi = new SetItem(pluginInterface);
+            GetStateApi = new GetState(pluginInterface);
             RevertStateApi = new RevertState(pluginInterface);
             RevertToAutomationApi = new RevertToAutomation(pluginInterface);
         }
