@@ -70,15 +70,22 @@ namespace OopsAllNudist.Utils
 
         private void OnGlamourerStateChange(nint actorPtr, StateFinalizationType type)
         {
-            var actor = Service.objectTable.FirstOrDefault(o => o.Address == actorPtr);
-
-            if (actor != null)
+            try
             {
-                if (Service.configuration.debugMode)
+                var actor = Service.objectTable.FirstOrDefault(o => o.Address == actorPtr);
+
+                if (actor != null)
                 {
-                    Plugin.OutputChatLine($"Glamourer change ({type}) detected on {actor.Name}. Redrawing.");
+                    if (Service.configuration.debugMode)
+                    {
+                        Plugin.OutputChatLine($"Glamourer change ({type}) detected on {actor.Name}. Redrawing.");
+                    }
+                    Service.penumbraApi.RedrawOne(actor.ObjectIndex, RedrawType.Redraw);
                 }
-                Service.penumbraApi.RedrawOne(actor.ObjectIndex, RedrawType.Redraw);
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error($"Error while handling Glamourer state change: {ex.Message}");
             }
         }
 
@@ -147,121 +154,128 @@ namespace OopsAllNudist.Utils
 
         public static unsafe void OnCreatingCharacterBase(nint gameObjectAddress, Guid _1, nint _2, nint customizePtr, nint equipPtr)
         {
-            var localPlayer = Service.clientState.LocalPlayer;
-            var characterObject = Service.objectTable.FirstOrDefault(o => o.Address == gameObjectAddress);
-
-            var gameObj = (GameObject*)gameObjectAddress;
-            var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
-            var equipData = (ulong*)equipPtr;
-            var charName = gameObj->NameString;
-            string[] childNPCNames = { "Alphinaud", "Alisaie" };
-
-            if (gameObj->ObjectKind == ObjectKind.Companion)
-                return;
-
-            var revertState = Service.glamourerApi?.RevertStateApi;
-            if (revertState == null)
-                return;
-
-            if (!Service.configuration.enabled)
+            try
             {
-                if (ModifiedActorIds.Contains(gameObj->ObjectIndex))
+                var localPlayer = Service.clientState.LocalPlayer;
+                var characterObject = Service.objectTable.FirstOrDefault(o => o.Address == gameObjectAddress);
+
+                var gameObj = (GameObject*)gameObjectAddress;
+                var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
+                var equipData = (ulong*)equipPtr;
+                var charName = gameObj->NameString;
+                string[] childNPCNames = { "Alphinaud", "Alisaie" };
+
+                if (gameObj->ObjectKind == ObjectKind.Companion)
+                    return;
+
+                var revertState = Service.glamourerApi?.RevertStateApi;
+                if (revertState == null)
+                    return;
+
+                if (!Service.configuration.enabled)
                 {
-                    revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
-                    ModifiedActorIds.Remove(gameObj->ObjectIndex);
-                }
-                return;
-            }
-
-            bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-            bool isSelf = IsSelfOrPlayerClone(characterObject, localPlayer);
-
-            if (Service.configuration.debugMode)
-            {
-                Plugin.OutputChatLine("Name: " + charName);
-                Plugin.OutputChatLine("ObjectIndex: " + gameObj->ObjectIndex);
-                Plugin.OutputChatLine("ObjectKind: " + gameObj->ObjectKind);
-                Plugin.OutputChatLine("ModelType: " + customData.ModelType);
-                Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
-            }
-
-            // Avoid some broken conversions
-            if (customData.Race == Race.UNKNOWN)
-                return;
-
-            if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
-                return;
-
-            if (Service.configuration.noChild)
-            {
-                if (customData.ModelType == 4)
-                {
-                    if (customData.RaceFeatureType == 128)
-                        customData.RaceFeatureType = 0;
-                    customData.ModelType = 0;
-
-                    foreach (string name in childNPCNames)
+                    if (ModifiedActorIds.Contains(gameObj->ObjectIndex))
                     {
-                        if (!string.IsNullOrEmpty(charName) && charName.Contains(name, StringComparison.OrdinalIgnoreCase))
+                        revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
+                        ModifiedActorIds.Remove(gameObj->ObjectIndex);
+                    }
+                    return;
+                }
+
+                bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
+                bool isSelf = IsSelfOrPlayerClone(characterObject, localPlayer);
+
+                if (Service.configuration.debugMode)
+                {
+                    Plugin.OutputChatLine("Name: " + charName);
+                    Plugin.OutputChatLine("ObjectIndex: " + gameObj->ObjectIndex);
+                    Plugin.OutputChatLine("ObjectKind: " + gameObj->ObjectKind);
+                    Plugin.OutputChatLine("ModelType: " + customData.ModelType);
+                    Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
+                }
+
+                // Avoid some broken conversions
+                if (customData.Race == Race.UNKNOWN)
+                    return;
+
+                if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
+                    return;
+
+                if (Service.configuration.noChild)
+                {
+                    if (customData.ModelType == 4)
+                    {
+                        if (customData.RaceFeatureType == 128)
+                            customData.RaceFeatureType = 0;
+                        customData.ModelType = 0;
+
+                        foreach (string name in childNPCNames)
                         {
-                            switch (name)
+                            if (!string.IsNullOrEmpty(charName) && charName.Contains(name, StringComparison.OrdinalIgnoreCase))
                             {
-                                case "Alphinaud":
-                                    customData.FaceType = 1;
-                                    customData.HairStyle = 169;
-                                    break;
-                                case "Alisaie":
-                                    customData.FaceType = 4;
-                                    customData.HairStyle = 174;
-                                    break;
-                                default:
-                                    break;
+                                switch (name)
+                                {
+                                    case "Alphinaud":
+                                        customData.FaceType = 1;
+                                        customData.HairStyle = 169;
+                                        break;
+                                    case "Alisaie":
+                                        customData.FaceType = 4;
+                                        customData.HairStyle = 174;
+                                        break;
+                                    default:
+                                        break;
+                                }
                             }
                         }
                     }
+                    Marshal.StructureToPtr(customData, customizePtr, true);
                 }
-                Marshal.StructureToPtr(customData, customizePtr, true);
-            }
 
-            bool dontLala = Service.configuration.dontLalaSelf && isSelf;
-            bool dontStrip = Service.configuration.dontStripSelf && isSelf;
+                bool dontLala = Service.configuration.dontLalaSelf && isSelf;
+                bool dontStrip = Service.configuration.dontStripSelf && isSelf;
 
-            dontLala |= Service.configuration.dontLalaPC && isPc && !isSelf;
-            dontLala |= Service.configuration.dontLalaNPC && !isPc;
+                dontLala |= Service.configuration.dontLalaPC && isPc && !isSelf;
+                dontLala |= Service.configuration.dontLalaNPC && !isPc;
 
-            dontStrip |= Service.configuration.dontStripPC && isPc && !isSelf;
-            dontStrip |= Service.configuration.dontStripNPC && !isPc;
+                dontStrip |= Service.configuration.dontStripPC && isPc && !isSelf;
+                dontStrip |= Service.configuration.dontStripNPC && !isPc;
 
-            if (Service.configuration.IsWhitelisted(charName))
-                return;
-
-            if (dontLala && dontStrip)
-                if (!Service.configuration.noLala)
+                if (Service.configuration.IsWhitelisted(charName))
                     return;
 
-            if (!dontLala)
-                ChangeRace(customData, customizePtr, Service.configuration.SelectedRace, Service.configuration.SelectedGender);
+                if (dontLala && dontStrip)
+                    if (!Service.configuration.noLala)
+                        return;
 
-            if (customData.ModelType == 4 && Service.configuration.childClothes)
-                return;
+                if (!dontLala)
+                    ChangeRace(customData, customizePtr, Service.configuration.SelectedRace, Service.configuration.SelectedGender);
 
-            if (Service.configuration.noLala)
-            {
-                if (customData.Race == Race.LALAFELL)
+                if (customData.ModelType == 4 && Service.configuration.childClothes)
+                    return;
+
+                if (Service.configuration.noLala)
                 {
-                    Random rnd = new Random();
-                    int raceRnd = rnd.Next(7) + 1;
-                    ChangeRace(customData, customizePtr, (Service.configuration.SelectedRace == Race.UNKNOWN || Service.configuration.SelectedRace == Race.LALAFELL) ? ConfigWindow.MapIndexToRace(raceRnd) : Service.configuration.SelectedRace, Service.configuration.SelectedGender);
+                    if (customData.Race == Race.LALAFELL)
+                    {
+                        Random rnd = new Random();
+                        int raceRnd = rnd.Next(7) + 1;
+                        ChangeRace(customData, customizePtr, (Service.configuration.SelectedRace == Race.UNKNOWN || Service.configuration.SelectedRace == Race.LALAFELL) ? ConfigWindow.MapIndexToRace(raceRnd) : Service.configuration.SelectedRace, Service.configuration.SelectedGender);
+                    }
+                }
+
+                if (!dontStrip)
+                {
+                    ModifiedActorIds.Add(gameObj->ObjectIndex);
+
+                    StripClothes(equipData, isSelf);
+                    if (isPc)
+                        StripClothes(gameObj->ObjectIndex, isSelf);
                 }
             }
-
-            if (!dontStrip)
+            catch (Exception ex)
             {
-                ModifiedActorIds.Add(gameObj->ObjectIndex);
-
-                StripClothes(equipData, isSelf);
-                if (isPc)
-                    StripClothes(gameObj->ObjectIndex, isSelf);
+                Service.Log.Error($"Error while creating character base: {ex.Message}");
             }
         }
 
@@ -325,7 +339,16 @@ namespace OopsAllNudist.Utils
 
         private static void StripClothes(int objectIndex, bool isSelf)
         {
-            if (Service.glamourerApi?.SetItemApi == null) return;
+            if (Service.glamourerApi?.GetStateApi == null || Service.glamourerApi?.SetItemApi == null)
+            {
+                return;
+            }
+
+            var (returnCode, _) = Service.glamourerApi.GetStateApi.Invoke(objectIndex);
+            if (returnCode == GlamourerApiEc.ActorNotFound)
+            {
+                return;
+            }
 
             var setItem = Service.glamourerApi.SetItemApi;
 

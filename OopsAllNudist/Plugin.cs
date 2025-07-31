@@ -5,7 +5,6 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using OopsAllNudist.Utils;
 using OopsAllNudist.Windows;
-using Penumbra.Api.Enums;
 
 namespace OopsAllNudist
 {
@@ -29,17 +28,11 @@ namespace OopsAllNudist
 
             if (Service.configuration.debugMode)
             {
-                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = true;
-                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = true;
-                Service.pluginInterface.UiBuilder.DisableGposeUiHide = true;
-                Service.pluginInterface.UiBuilder.DisableUserUiHide = true;
+                DisableUiHide(true);
             }
             else
             {
-                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = false;
-                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = false;
-                Service.pluginInterface.UiBuilder.DisableGposeUiHide = false;
-                Service.pluginInterface.UiBuilder.DisableUserUiHide = false;
+                DisableUiHide(false);
             }
             Service.configuration.Initialize(pluginInterface);
 
@@ -110,10 +103,7 @@ namespace OopsAllNudist
                 Service.configuration.debugMode = true;
                 Service.configuration.Save();
                 Service.configWindow.InvokeConfigChanged();
-                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = true;
-                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = true;
-                Service.pluginInterface.UiBuilder.DisableGposeUiHide = true;
-                Service.pluginInterface.UiBuilder.DisableUserUiHide = true;
+                DisableUiHide(true);
                 OutputChatLine("Debug mode on.");
                 return;
             }
@@ -122,14 +112,19 @@ namespace OopsAllNudist
                 Service.configuration.debugMode = false;
                 Service.configuration.Save();
                 Service.configWindow.InvokeConfigChanged();
-                Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = false;
-                Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = false;
-                Service.pluginInterface.UiBuilder.DisableGposeUiHide = false;
-                Service.pluginInterface.UiBuilder.DisableUserUiHide = false;
+                DisableUiHide(false);
                 OutputChatLine("Debug mode off.");
                 return;
             }
             Service.configWindow.IsOpen = true;
+        }
+
+        private void DisableUiHide(bool shouldDisable)
+        {
+            Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = shouldDisable;
+            Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = shouldDisable;
+            Service.pluginInterface.UiBuilder.DisableGposeUiHide = shouldDisable;
+            Service.pluginInterface.UiBuilder.DisableUserUiHide = shouldDisable;
         }
 
         private void DrawUI() => WindowSystem.Draw();
