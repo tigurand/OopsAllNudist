@@ -44,6 +44,13 @@ namespace OopsAllNudist.Utils
             if (character.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
                 return false;
 
+            if (character.Address == IntPtr.Zero || !character.IsValid())
+            {
+                Service.Log.Warning("Invalid character in IsSelfOrPlayerClone");
+                return false;
+            }
+
+            Service.Log.Info($"Accessing ObjectIndex for character={character.Name.TextValue}, Address={character.Address:X}");
             uint objectIndex = character.ObjectIndex;
             bool isPotentialClone = (objectIndex >= 200 && objectIndex < 240) || (objectIndex >= 440 && objectIndex < 460);
             if (!isPotentialClone)
@@ -103,6 +110,7 @@ namespace OopsAllNudist.Utils
                     {
                         if (!obj.IsValid()) continue;
                         if (obj is not ICharacter) continue;
+                        Service.Log.Info($"Processing object: {obj.Name.TextValue}, Address: {obj.Address:X}, ObjectKind: {obj.ObjectKind}");
                         if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
                         if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
@@ -170,10 +178,26 @@ namespace OopsAllNudist.Utils
         {
             try
             {
+                if (gameObjectAddress == IntPtr.Zero)
+                {
+                    Service.Log.Error("Invalid gameObjectAddress in OnCreatingCharacterBase");
+                    return;
+                }
+
                 var localPlayer = Service.clientState.LocalPlayer;
                 var characterObject = Service.objectTable.FirstOrDefault(o => o.Address == gameObjectAddress);
 
                 var gameObj = (GameObject*)gameObjectAddress;
+                if (gameObj == null)
+                {
+                    Service.Log.Error("Null GameObject pointer in OnCreatingCharacterBase");
+                    return;
+                }
+                if (gameObj->ObjectKind == ObjectKind.None)
+                {
+                    Service.Log.Error("Invalid ObjectKind in OnCreatingCharacterBase");
+                    return;
+                }
                 var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
                 var equipData = (ulong*)equipPtr;
                 var charName = gameObj->NameString;
@@ -188,8 +212,10 @@ namespace OopsAllNudist.Utils
 
                 if (!Service.configuration.enabled)
                 {
+                    Service.Log.Info($"Accessing ObjectIndex for gameObjectAddress={gameObjectAddress:X}");
                     if (ModifiedActorIds.Contains(gameObj->ObjectIndex))
                     {
+                        Service.Log.Info($"Reverting state for ObjectIndex={gameObj->ObjectIndex}");
                         revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
                         ModifiedActorIds.Remove(gameObj->ObjectIndex);
                     }
@@ -337,39 +363,48 @@ namespace OopsAllNudist.Utils
 
         private static unsafe void StripClothes(ulong* equipData, bool isSelf)
         {
-            int isEmperor = CheckRandom(isSelf);
-
-            if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 1U : 0;
-            if (Service.configuration.stripBodies) equipData[1] = 0;
-            if (Service.configuration.stripGloves) equipData[2] = 0;
-            if (Service.configuration.stripLegs) equipData[3] = (isEmperor == 0 ? 0 : 279U);
-            if (Service.configuration.stripBoots) equipData[4] = 0;
-            if (Service.configuration.stripAccessories)
+            try
             {
-                for (int i = 5; i <= 9; ++i)
-                    equipData[i] = 0;
+                int isEmperor = CheckRandom(isSelf);
+
+                if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 1U : 0;
+                if (Service.configuration.stripBodies) equipData[1] = 0;
+                if (Service.configuration.stripGloves) equipData[2] = 0;
+                if (Service.configuration.stripLegs) equipData[3] = (isEmperor == 0 ? 0 : 279U);
+                if (Service.configuration.stripBoots) equipData[4] = 0;
+                if (Service.configuration.stripAccessories)
+                {
+                    for (int i = 5; i <= 9; ++i)
+                        equipData[i] = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error($"Error while stripping clothes for equipData: {ex.Message}");
             }
         }
 
         private static void StripClothes(int objectIndex, bool isSelf)
         {
-            if (Service.glamourerApi?.GetStateApi == null || Service.glamourerApi?.SetItemApi == null)
+            try
             {
-                return;
-            }
+                if (Service.glamourerApi?.GetStateApi == null || Service.glamourerApi?.SetItemApi == null)
+                {
+                    return;
+                }
 
-            var (returnCode, _) = Service.glamourerApi.GetStateApi.Invoke(objectIndex);
-            if (returnCode == GlamourerApiEc.ActorNotFound)
-            {
-                return;
-            }
+                var (returnCode, _) = Service.glamourerApi.GetStateApi.Invoke(objectIndex);
+                if (returnCode == GlamourerApiEc.ActorNotFound)
+                {
+                    return;
+                }
 
-            var setItem = Service.glamourerApi.SetItemApi;
+                var setItem = Service.glamourerApi.SetItemApi;
 
-            var noStains = new List<byte>();
+                var noStains = new List<byte>();
 
-            var accessorySlots = new[]
-            {
+                var accessorySlots = new[]
+                {
                 ApiEquipSlot.Ears,
                 ApiEquipSlot.Neck,
                 ApiEquipSlot.Wrists,
@@ -377,34 +412,39 @@ namespace OopsAllNudist.Utils
                 ApiEquipSlot.LFinger,
             };
 
-            int isEmperor = CheckRandom(isSelf);
+                int isEmperor = CheckRandom(isSelf);
 
-            if (Service.configuration.stripHats)
-            {
-                setItem.Invoke(objectIndex, ApiEquipSlot.Head, 0, noStains, 0, 0);
-            }
-            if (Service.configuration.stripBodies)
-            {
-                setItem.Invoke(objectIndex, ApiEquipSlot.Body, 0, noStains, 0, 0);
-            }
-            if (Service.configuration.stripGloves)
-            {
-                setItem.Invoke(objectIndex, ApiEquipSlot.Hands, 0, noStains, 0, 0);
-            }
-            if (Service.configuration.stripBoots)
-            {
-                setItem.Invoke(objectIndex, ApiEquipSlot.Feet, 0, noStains, 0, 0);
-            }
-            if (Service.configuration.stripLegs)
-            {
-                setItem.Invoke(objectIndex, ApiEquipSlot.Legs, (isEmperor == 0) ? 0 : 10035U, noStains, 0, 0);
-            }
-            if (Service.configuration.stripAccessories)
-            {
-                foreach (var slot in accessorySlots)
+                if (Service.configuration.stripHats)
                 {
-                    setItem.Invoke(objectIndex, slot, 0, noStains, 0, 0);
+                    setItem.Invoke(objectIndex, ApiEquipSlot.Head, 0, noStains, 0, 0);
                 }
+                if (Service.configuration.stripBodies)
+                {
+                    setItem.Invoke(objectIndex, ApiEquipSlot.Body, 0, noStains, 0, 0);
+                }
+                if (Service.configuration.stripGloves)
+                {
+                    setItem.Invoke(objectIndex, ApiEquipSlot.Hands, 0, noStains, 0, 0);
+                }
+                if (Service.configuration.stripBoots)
+                {
+                    setItem.Invoke(objectIndex, ApiEquipSlot.Feet, 0, noStains, 0, 0);
+                }
+                if (Service.configuration.stripLegs)
+                {
+                    setItem.Invoke(objectIndex, ApiEquipSlot.Legs, (isEmperor == 0) ? 0 : 10035U, noStains, 0, 0);
+                }
+                if (Service.configuration.stripAccessories)
+                {
+                    foreach (var slot in accessorySlots)
+                    {
+                        setItem.Invoke(objectIndex, slot, 0, noStains, 0, 0);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error($"Error while stripping clothes for object index {objectIndex}: {ex.Message}");
             }
         }
 
