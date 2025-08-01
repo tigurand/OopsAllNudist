@@ -98,6 +98,11 @@ namespace OopsAllNudist
                 Service.configWindow.InvokeConfigChanged();
                 return;
             }
+            if (args == "refresh")
+            {
+                Drawer.RefreshAllPlayers(false);
+                return;
+            }
             if (args == "debug on")
             {
                 Service.configuration.debugMode = true;
