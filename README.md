@@ -12,9 +12,13 @@ Turn everyone around you naked (and some other things)
 
 # Installation
 Add<br />
-`https://raw.githubusercontent.com/tigurand/DalamudPlugins/refs/heads/main/repo.json`<br />
+```
+https://raw.githubusercontent.com/tigurand/DalamudPlugins/refs/heads/main/repo.json
+```
 and<br />
-`https://raw.githubusercontent.com/Ottermandias/SeaOfStars/main/repo.json`<br />
+```
+https://raw.githubusercontent.com/Ottermandias/SeaOfStars/main/repo.json
+```
 to list of custom repo under Experimental tab in dalamud settings.  
 Install and enable Penumbra, Glamourer, and OopsAllNudist.
 
