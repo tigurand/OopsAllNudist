@@ -65,7 +65,7 @@ namespace OopsAllNudist
 
         public void Dispose()
         {
-            Drawer.RefreshAllPlayers(false);
+            Drawer.RefreshAllPlayers(false, true);
 
             WindowSystem.RemoveAllWindows();
 
@@ -100,7 +100,7 @@ namespace OopsAllNudist
             }
             if (args == "refresh")
             {
-                Drawer.RefreshAllPlayers(false);
+                Drawer.RefreshAllPlayers(false, true);
                 return;
             }
             if (args == "debug on")

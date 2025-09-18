@@ -19,14 +19,14 @@ namespace OopsAllNudist.Utils
         private readonly IDisposable glamourerSubscription;
         public Drawer()
         {
-            Service.configWindow.OnConfigChanged += RefreshAllPlayers;
+            Service.configWindow.OnConfigChanged += (force) => RefreshAllPlayers(force, false);
             Service.configWindow.OnConfigChangedSingleChar += RefreshOnePlayer;
             glamourerSubscription = StateFinalized.Subscriber(Service.pluginInterface, OnGlamourerStateChange);
 
             if (Service.configuration.enabled)
             {
                 Plugin.OutputChatLine("OopsAllNudist starting...");
-                RefreshAllPlayers(false);
+                RefreshAllPlayers(false, false);
             }
         }
 
@@ -96,7 +96,7 @@ namespace OopsAllNudist.Utils
             }
         }
 
-        public static void RefreshAllPlayers(bool force)
+        public static void RefreshAllPlayers(bool force, bool glamourerRefresh)
         {
             try
             {
@@ -119,6 +119,11 @@ namespace OopsAllNudist.Utils
                         if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                         if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
 
+                        if (glamourerRefresh)
+                        {
+                            Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                            Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
+                        }
                         Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
                     }
                 });
@@ -499,7 +504,7 @@ namespace OopsAllNudist.Utils
 
         public void Dispose()
         {
-            Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
+            Service.configWindow.OnConfigChanged -= (force) => RefreshAllPlayers(force, true);
             Service.configWindow.OnConfigChangedSingleChar -= RefreshOnePlayer;
             glamourerSubscription?.Dispose();
         }
