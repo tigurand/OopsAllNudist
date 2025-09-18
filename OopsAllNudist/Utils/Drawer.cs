@@ -15,7 +15,7 @@ namespace OopsAllNudist.Utils
 {
     internal class Drawer : IDisposable
     {
-        public static HashSet<uint> ModifiedActorIds = new HashSet<uint>();
+        public static HashSet<ActorKey> ModifiedActorIds = new HashSet<ActorKey>();
         private readonly IDisposable glamourerSubscription;
         public Drawer()
         {
@@ -110,11 +110,7 @@ namespace OopsAllNudist.Utils
                     {
                         if (!obj.IsValid()) continue;
                         if (obj is not ICharacter) continue;
-                        Service.Log.Info($"Processing object: {obj.Name.TextValue}, Address: {obj.Address:X}, ObjectKind: {obj.ObjectKind}");
                         if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
-
-                        if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
-                            continue;
 
                         bool isPc = obj is IPlayerCharacter;
                         bool isSelf = IsSelfOrPlayerClone(obj, localPlayer);
@@ -123,8 +119,6 @@ namespace OopsAllNudist.Utils
                         if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
                         if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
 
-                        Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
-                        Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
                         Service.penumbraApi.RedrawOne(obj.ObjectIndex, RedrawType.Redraw);
                     }
                 });
@@ -143,7 +137,6 @@ namespace OopsAllNudist.Utils
                     return;
 
                 int objectIndex = -1;
-                Dalamud.Game.ClientState.Objects.Enums.ObjectKind objectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.None;
 
                 Service.Framework.RunOnFrameworkThread(() =>
                 {
@@ -153,24 +146,45 @@ namespace OopsAllNudist.Utils
                         if (obj is not ICharacter) continue;
                         if (obj.Name.TextValue != charName) continue;
                         objectIndex = obj.ObjectIndex;
-                        objectKind = obj.ObjectKind;
                         break;
                     }
                 });
 
-                if (objectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion)
-                    return;
-
                 if (objectIndex == -1)
                     return;
 
-                Service.glamourerApi.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-                Service.glamourerApi.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
                 Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
             }
             catch (Exception ex)
             {
                 Service.Log.Error($"Error while refreshing player {charName}: {ex.Message}");
+            }
+        }
+
+        public struct ActorKey
+        {
+            public uint ObjectIndex { get; set; }
+            public uint EntityId { get; set; }
+
+            public ActorKey(uint objectIndex, uint entityId)
+            {
+                ObjectIndex = objectIndex;
+                EntityId = entityId;
+            }
+
+            public override bool Equals(object? obj)
+            {
+                return obj is ActorKey other && ObjectIndex == other.ObjectIndex && EntityId == other.EntityId;
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(ObjectIndex, EntityId);
+            }
+
+            public override string ToString()
+            {
+                return $"ObjectIndex={ObjectIndex}, EntityId={EntityId}";
             }
         }
 
@@ -198,26 +212,31 @@ namespace OopsAllNudist.Utils
                     Service.Log.Error("Invalid ObjectKind in OnCreatingCharacterBase");
                     return;
                 }
+
                 var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
                 var equipData = (ulong*)equipPtr;
                 var charName = gameObj->NameString;
                 string[] childNPCNames = { "Alphinaud", "Alisaie" };
 
+                var actorKey = new ActorKey(gameObj->ObjectIndex, gameObj->EntityId);
+
                 if (gameObj->ObjectKind == ObjectKind.Companion)
                     return;
 
                 var revertState = Service.glamourerApi?.RevertStateApi;
-                if (revertState == null)
+                var revertAutomation = Service.glamourerApi?.RevertToAutomationApi;
+                if (revertState == null || revertAutomation == null)
                     return;
 
                 if (!Service.configuration.enabled)
                 {
-                    Service.Log.Info($"Accessing ObjectIndex for gameObjectAddress={gameObjectAddress:X}");
-                    if (ModifiedActorIds.Contains(gameObj->ObjectIndex))
+                    Service.Log.Info($"Accessing actor for {actorKey}");
+                    if (ModifiedActorIds.Contains(actorKey))
                     {
-                        Service.Log.Info($"Reverting state for ObjectIndex={gameObj->ObjectIndex}");
-                        revertState.Invoke(gameObj->ObjectIndex, 0, ApplyFlag.Equipment);
-                        ModifiedActorIds.Remove(gameObj->ObjectIndex);
+                        Service.Log.Info($"Reverting state for {actorKey}");
+                        revertState.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
+                        revertAutomation.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
+                        ModifiedActorIds.Remove(actorKey);
                     }
                     return;
                 }
@@ -229,6 +248,7 @@ namespace OopsAllNudist.Utils
                 {
                     Plugin.OutputChatLine("Name: " + charName);
                     Plugin.OutputChatLine("ObjectIndex: " + gameObj->ObjectIndex);
+                    Plugin.OutputChatLine("EntityId: " + gameObj->EntityId);
                     Plugin.OutputChatLine("ObjectKind: " + gameObj->ObjectKind);
                     Plugin.OutputChatLine("ModelType: " + customData.ModelType);
                     Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
@@ -306,7 +326,7 @@ namespace OopsAllNudist.Utils
 
                 if (!dontStrip)
                 {
-                    ModifiedActorIds.Add(gameObj->ObjectIndex);
+                    ModifiedActorIds.Add(actorKey);
 
                     StripClothes(equipData, isSelf);
                     if (isPc)
