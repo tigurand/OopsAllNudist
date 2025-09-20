@@ -112,6 +112,8 @@ namespace OopsAllNudist.Utils
                         if (obj is not ICharacter) continue;
                         if (Service.configuration.IsWhitelisted(obj.Name.TextValue)) continue;
 
+                        if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion) continue;
+
                         bool isPc = obj is IPlayerCharacter;
                         bool isSelf = IsSelfOrPlayerClone(obj, localPlayer);
 
@@ -142,6 +144,7 @@ namespace OopsAllNudist.Utils
                     return;
 
                 int objectIndex = -1;
+                Dalamud.Game.ClientState.Objects.Enums.ObjectKind objectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind.None;
 
                 Service.Framework.RunOnFrameworkThread(() =>
                 {
@@ -151,12 +154,13 @@ namespace OopsAllNudist.Utils
                         if (obj is not ICharacter) continue;
                         if (obj.Name.TextValue != charName) continue;
                         objectIndex = obj.ObjectIndex;
+                        objectKind = obj.ObjectKind;
                         break;
                     }
                 });
 
-                if (objectIndex == -1)
-                    return;
+                if (objectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Companion) return;
+                if (objectIndex == -1) return;
 
                 Service.penumbraApi.RedrawOne(objectIndex, RedrawType.Redraw);
             }
