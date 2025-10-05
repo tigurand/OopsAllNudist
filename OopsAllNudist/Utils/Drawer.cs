@@ -15,7 +15,7 @@ namespace OopsAllNudist.Utils
 {
     internal class Drawer : IDisposable
     {
-        public static HashSet<ActorKey> ModifiedActorIds = new HashSet<ActorKey>();
+        public static HashSet<ActorKey> RevertedActorIds = new HashSet<ActorKey>();
         private readonly IDisposable glamourerSubscription;
         public Drawer()
         {
@@ -239,14 +239,20 @@ namespace OopsAllNudist.Utils
                 if (!Service.configuration.enabled)
                 {
                     Service.Log.Info($"Accessing actor for {actorKey}");
-                    if (ModifiedActorIds.Contains(actorKey))
+                    if (!RevertedActorIds.Contains(actorKey))
                     {
                         Service.Log.Info($"Reverting state for {actorKey}");
                         revertState.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
                         revertAutomation.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
-                        ModifiedActorIds.Remove(actorKey);
+                        RevertedActorIds.Add(actorKey);
                     }
                     return;
+                }
+
+                if (RevertedActorIds.Count > 0)
+                {
+                    Service.Log.Info("Clearing RevertedActorIds");
+                    RevertedActorIds.Clear();
                 }
 
                 bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
@@ -334,8 +340,6 @@ namespace OopsAllNudist.Utils
 
                 if (!dontStrip)
                 {
-                    ModifiedActorIds.Add(actorKey);
-
                     StripClothes(equipData, isSelf);
                     if (isPc)
                         StripClothes(gameObj->ObjectIndex, isSelf);
