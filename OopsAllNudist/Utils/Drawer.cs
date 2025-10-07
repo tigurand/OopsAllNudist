@@ -41,7 +41,7 @@ namespace OopsAllNudist.Utils
             if (character.Address == localPlayer.Address)
                 return true;
 
-            if (character.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
+            if (character.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player && character.Name.TextValue != "")
                 return false;
 
             if (character.Address == IntPtr.Zero || !character.IsValid())
@@ -50,8 +50,10 @@ namespace OopsAllNudist.Utils
                 return false;
             }
 
-            Service.Log.Info($"Accessing ObjectIndex for character={character.Name.TextValue}, Address={character.Address:X}");
             uint objectIndex = character.ObjectIndex;
+
+            Service.Log.Info($"Checking clone for ObjectIndex={objectIndex}, Address={character.Address:X}");
+
             bool isPotentialClone = (objectIndex >= 200 && objectIndex < 240) || (objectIndex >= 440 && objectIndex < 460);
             if (!isPotentialClone)
                 return false;
@@ -62,17 +64,28 @@ namespace OopsAllNudist.Utils
             if (targetCustomize == null || localCustomize == null || targetCustomize.Length < 26 || localCustomize.Length < 26)
                 return false;
 
-            return targetCustomize[0] == localCustomize[0] &&
-                   targetCustomize[1] == localCustomize[1] &&
-                   targetCustomize[4] == localCustomize[4] &&
-                   targetCustomize[5] == localCustomize[5] &&
-                   targetCustomize[6] == localCustomize[6] &&
-                   targetCustomize[8] == localCustomize[8] &&
-                   targetCustomize[9] == localCustomize[9] &&
-                   targetCustomize[10] == localCustomize[10] &&
-                   targetCustomize[11] == localCustomize[11] &&
-                   targetCustomize[15] == localCustomize[15] &&
-                   targetCustomize[20] == localCustomize[20];
+            int[] indicesToCheck = { 0, 1, 4, 5, 6, 8, 9, 10, 11, 15, 20 };
+            bool allMatch = true;
+
+            foreach (int i in indicesToCheck)
+            {
+                if (targetCustomize[i] != localCustomize[i])
+                {
+                    if (Service.configuration.debugMode)
+                        Service.Log.Info($"Mismatch at Index {i}: Target={targetCustomize[i]}, Local={localCustomize[i]}");
+                    allMatch = false;
+                }
+            }
+            if (allMatch)
+            {
+                Service.Log.Info("Customization matched, player's clone found.");
+            }
+            else
+            {
+                Service.Log.Info("This is not player's clone.");
+            }
+
+            return allMatch;
         }
 
         private void OnGlamourerStateChange(nint actorPtr, StateFinalizationType type)
@@ -208,8 +221,8 @@ namespace OopsAllNudist.Utils
 
                 var localPlayer = Service.clientState.LocalPlayer;
                 var characterObject = Service.objectTable.FirstOrDefault(o => o.Address == gameObjectAddress);
-
                 var gameObj = (GameObject*)gameObjectAddress;
+
                 if (gameObj == null)
                 {
                     Service.Log.Error("Null GameObject pointer in OnCreatingCharacterBase");
@@ -225,6 +238,8 @@ namespace OopsAllNudist.Utils
                 var equipData = (ulong*)equipPtr;
                 var charName = gameObj->NameString;
                 string[] childNPCNames = { "Alphinaud", "Alisaie" };
+
+                Service.Log.Info($"Processing ObjectIndex={gameObj->ObjectIndex}, Name={charName}, ObjectKind={gameObj->ObjectKind}");
 
                 var actorKey = new ActorKey(gameObj->ObjectIndex, gameObj->EntityId);
 
@@ -264,6 +279,8 @@ namespace OopsAllNudist.Utils
                     Plugin.OutputChatLine("ObjectIndex: " + gameObj->ObjectIndex);
                     Plugin.OutputChatLine("EntityId: " + gameObj->EntityId);
                     Plugin.OutputChatLine("ObjectKind: " + gameObj->ObjectKind);
+                    Plugin.OutputChatLine("Race: " + customData.Race);
+                    Plugin.OutputChatLine("Clan: " + customData.Tribe);
                     Plugin.OutputChatLine("ModelType: " + customData.ModelType);
                     Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
                 }
