@@ -26,6 +26,7 @@ namespace OopsAllNudist
                 Service.configuration.enabled = false;
             }
 
+            Service.pluginInterface.UiBuilder.DisableGposeUiHide = true;
             if (Service.configuration.debugMode)
             {
                 DisableUiHide(true);
@@ -128,7 +129,6 @@ namespace OopsAllNudist
         {
             Service.pluginInterface.UiBuilder.DisableAutomaticUiHide = shouldDisable;
             Service.pluginInterface.UiBuilder.DisableCutsceneUiHide = shouldDisable;
-            Service.pluginInterface.UiBuilder.DisableGposeUiHide = shouldDisable;
             Service.pluginInterface.UiBuilder.DisableUserUiHide = shouldDisable;
         }
 

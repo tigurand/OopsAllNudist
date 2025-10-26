@@ -238,6 +238,10 @@ namespace OopsAllNudist.Utils
                 var equipData = (ulong*)equipPtr;
                 var charName = gameObj->NameString;
                 string[] childNPCNames = { "Alphinaud", "Alisaie" };
+                string[] blockedNPCs = { "Esteem", "Gaia" };
+
+                if (blockedNPCs.Contains(charName))
+                    return;
 
                 Service.Log.Info($"Processing ObjectIndex={gameObj->ObjectIndex}, Name={charName}, ObjectKind={gameObj->ObjectKind}");
 
@@ -416,10 +420,10 @@ namespace OopsAllNudist.Utils
             {
                 int isEmperor = CheckRandom(isSelf);
 
-                if (Service.configuration.stripHats) equipData[0] = (isSelf) ? 1U : 0;
+                if (Service.configuration.stripHats) equipData[0] = isSelf ? 1U : 0;
                 if (Service.configuration.stripBodies) equipData[1] = 0;
                 if (Service.configuration.stripGloves) equipData[2] = 0;
-                if (Service.configuration.stripLegs) equipData[3] = (isEmperor == 0 ? 0 : 279U);
+                if (Service.configuration.stripLegs) equipData[3] = (isEmperor == 0) ? 0 : 279U;
                 if (Service.configuration.stripBoots) equipData[4] = 0;
                 if (Service.configuration.stripAccessories)
                 {
@@ -505,7 +509,7 @@ namespace OopsAllNudist.Utils
             {
                 if (Service.configuration.empLegsRandom)
                 {
-                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 1 : rnd.Next(2)) : rnd.Next(2);
+                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? (isSelf ? 1 : rnd.Next(2)) : rnd.Next(2);
                 }
                 else
                 {
@@ -516,7 +520,7 @@ namespace OopsAllNudist.Utils
             {
                 if (Service.configuration.empLegsRandom)
                 {
-                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? ((isSelf) ? 0 : rnd.Next(2)) : rnd.Next(2);
+                    isEmperor = (!Service.configuration.empLegsRandomSelf) ? (isSelf ? 0 : rnd.Next(2)) : rnd.Next(2);
                 }
                 else
                 {
