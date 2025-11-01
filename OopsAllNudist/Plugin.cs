@@ -46,7 +46,8 @@ namespace OopsAllNudist
             WindowSystem.AddWindow(Service.configWindow);
             WindowSystem.AddWindow(Service.whitelistWindow);
 
-            _ = pluginInterface.Create<Drawer>();
+            Service.drawer?.Dispose();
+            Service.drawer = new Drawer();
 
             pluginInterface.UiBuilder.Draw += DrawUI;
             pluginInterface.UiBuilder.OpenMainUi += DrawConfigUI;
@@ -69,6 +70,9 @@ namespace OopsAllNudist
             Drawer.RefreshAllPlayers(false);
 
             WindowSystem.RemoveAllWindows();
+
+            Service.drawer?.Dispose();
+            Service.drawer = null!;
 
             Service.penumbraApi?.Dispose();
             Service.glamourerApi.Dispose();

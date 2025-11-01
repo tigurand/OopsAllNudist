@@ -238,10 +238,7 @@ namespace OopsAllNudist.Utils
                 var equipData = (ulong*)equipPtr;
                 var charName = gameObj->NameString;
                 string[] childNPCNames = { "Alphinaud", "Alisaie" };
-                string[] blockedNPCs = { "Esteem", "Gaia" };
-
-                if (blockedNPCs.Contains(charName))
-                    return;
+                string[] specialNPCs = { "Esteem", "Gaia", "Gosetsu" };
 
                 Service.Log.Info($"Processing ObjectIndex={gameObj->ObjectIndex}, Name={charName}, ObjectKind={gameObj->ObjectKind}");
 
@@ -289,6 +286,22 @@ namespace OopsAllNudist.Utils
                     Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
                 }
 
+                foreach (string specialName in specialNPCs)
+                {
+                    if (!string.IsNullOrEmpty(charName) && charName.Contains(specialName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        switch (specialName)
+                        {
+                            case "Gosetsu":
+                                customData.ModelType = 1;
+                                Marshal.StructureToPtr(customData, customizePtr, true);
+                                break;
+                            default:
+                                return;
+                        }
+                    }
+                }
+
                 // Avoid some broken conversions
                 if (customData.Race == Race.UNKNOWN)
                     return;
@@ -302,13 +315,13 @@ namespace OopsAllNudist.Utils
                     {
                         if (customData.RaceFeatureType == 128)
                             customData.RaceFeatureType = 0;
-                        customData.ModelType = 0;
+                        customData.ModelType = 1;
 
-                        foreach (string name in childNPCNames)
+                        foreach (string childName in childNPCNames)
                         {
-                            if (!string.IsNullOrEmpty(charName) && charName.Contains(name, StringComparison.OrdinalIgnoreCase))
+                            if (!string.IsNullOrEmpty(charName) && charName.Contains(childName, StringComparison.OrdinalIgnoreCase))
                             {
-                                switch (name)
+                                switch (childName)
                                 {
                                     case "Alphinaud":
                                         customData.FaceType = 1;
