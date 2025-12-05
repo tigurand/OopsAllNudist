@@ -117,7 +117,7 @@ namespace OopsAllNudist.Utils
 
                 Service.Framework.RunOnFrameworkThread(() =>
                 {
-                    var localPlayer = Service.clientState.LocalPlayer;
+                    var localPlayer = Service.objectTable.LocalPlayer;
 
                     foreach (var obj in Service.objectTable)
                     {
@@ -219,7 +219,7 @@ namespace OopsAllNudist.Utils
                     return;
                 }
 
-                var localPlayer = Service.clientState.LocalPlayer;
+                var localPlayer = Service.objectTable.LocalPlayer;
                 var characterObject = Service.objectTable.FirstOrDefault(o => o.Address == gameObjectAddress);
                 var gameObj = (GameObject*)gameObjectAddress;
 

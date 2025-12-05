@@ -143,8 +143,8 @@ internal class ConfigWindow : Window
         {
             configuration.dontStripSelf = !_StripSelf;
             configuration.Save();
-            if (configuration.enabled && Service.clientState.LocalPlayer != null)
-                OnConfigChangedSingleChar?.Invoke(Service.clientState.LocalPlayer.Name.TextValue);
+            if (configuration.enabled && Service.objectTable.LocalPlayer != null)
+                OnConfigChangedSingleChar?.Invoke(Service.objectTable.LocalPlayer.Name.TextValue);
         }
 
         ImGui.SameLine();
@@ -176,8 +176,8 @@ internal class ConfigWindow : Window
         {
             configuration.dontLalaSelf = !_LalaSelf;
             configuration.Save();
-            if (configuration.enabled && Service.clientState.LocalPlayer != null)
-                OnConfigChangedSingleChar?.Invoke(Service.clientState.LocalPlayer.Name.TextValue);
+            if (configuration.enabled && Service.objectTable.LocalPlayer != null)
+                OnConfigChangedSingleChar?.Invoke(Service.objectTable.LocalPlayer.Name.TextValue);
         }
 
         ImGui.SameLine();
