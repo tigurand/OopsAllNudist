@@ -1,6 +1,7 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
 using OopsAllNudist.Utils;
+using System.Linq;
 using System.Numerics;
 
 namespace OopsAllNudist.Windows;
@@ -27,7 +28,7 @@ internal class WhitelistWindow : Window
         ImGui.Text("Click a name to remove it.");
         ImGui.Separator();
 
-        foreach (var charName in Service.configuration.Whitelist)
+        foreach (var charName in Service.configuration.Whitelist.ToList())
         {
             if (ImGui.Selectable(charName))
             {

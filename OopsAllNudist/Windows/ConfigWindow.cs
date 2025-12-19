@@ -1,8 +1,10 @@
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Windowing;
-using Dalamud.Utility;
+using ECommons;
 using OopsAllNudist.Utils;
 using System;
+using System.Numerics;
 using static OopsAllNudist.Utils.Constant;
 
 namespace OopsAllNudist.Windows;
@@ -30,6 +32,8 @@ internal class ConfigWindow : Window
         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize)
     {
         configuration = Service.configuration;
+
+        this.TitleBarButtons.Add(new TitleBarButton { ShowTooltip = () => ImGui.SetTooltip("Support on Ko-fi"), Icon = FontAwesomeIcon.Heart, IconOffset = new Vector2(1, 1), Click = _ => GenericHelpers.ShellStart("https://ko-fi.com/lucillebagul") });
 
         selectedRaceIndex = configuration.SelectedRace switch
         {
@@ -336,9 +340,9 @@ internal class ConfigWindow : Window
         ImGui.Separator();
 
         string? targetName = Service.targetManager.Target?.Name.TextValue;
-        bool targetIsWhitelisted = !targetName.IsNullOrEmpty() && configuration.IsWhitelisted(targetName);
+        bool targetIsWhitelisted = !string.IsNullOrEmpty(targetName) && configuration.IsWhitelisted(targetName!);
 
-        ImGui.BeginDisabled(targetName.IsNullOrEmpty());
+        ImGui.BeginDisabled(string.IsNullOrEmpty(targetName));
 
         try
         {
