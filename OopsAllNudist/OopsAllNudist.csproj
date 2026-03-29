@@ -3,7 +3,7 @@
     <PropertyGroup>
         <Authors></Authors>
         <Company></Company>
-        <Version>2.2.5.0</Version>
+        <Version>2.2.5.1</Version>
         <Description>Turn everyone around you into a nudist.</Description>
         <Copyright></Copyright>
         <PackageProjectUrl>https://github.com/tigurand/OopsAllNudist</PackageProjectUrl>
@@ -13,13 +13,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="ECommons" Version="3.1.0.5" />
+        <PackageReference Include="ECommons" Version="3.1.0.29" />
         <PackageReference Include="Glamourer.Api" Version="2.8.0" />
-        <PackageReference Include="Penumbra.Api" Version="5.13.0" />
+        <PackageReference Include="Penumbra.Api" Version="5.13.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Update="DalamudPackager" Version="14.0.1" />
-      <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.39" />
+      <PackageReference Update="DalamudPackager" Version="14.0.2" />
+      <PackageReference Update="DotNet.ReproducibleBuilds" Version="2.0.2" />
     </ItemGroup>
 </Project>

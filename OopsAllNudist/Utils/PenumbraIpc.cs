@@ -26,8 +26,7 @@ namespace OopsAllNudist.Utils
             }
             catch (Exception ex)
             {
-                Plugin.OutputChatLine($"Warning: Penumbra not found. Error: {ex.Message}\n" +
-                                      "Note: if you disable Penumbra before this plugin, lalafells will stay there until updated.");
+                Plugin.OutputChatLine($"Warning: Penumbra not found. Error: {ex.Message}");
             }
         }
 
@@ -39,8 +38,7 @@ namespace OopsAllNudist.Utils
             }
             catch (Exception ex)
             {
-                Plugin.OutputChatLine($"Warning: Penumbra not found. Error: {ex.Message}\n" +
-                                      "Note: if you disable Penumbra before this plugin, lalafells will stay there until updated.");
+                Plugin.OutputChatLine($"Warning: Penumbra not found. Error: {ex.Message}");
             }
         }
     }
