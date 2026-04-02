@@ -21,9 +21,9 @@ namespace OopsAllNudist.Utils
 
         public enum Gender : byte
         {
-            UNKNOWN = 0,
+            MALE = 0,
             FEMALE = 1,
-            MALE = 2
+            UNKNOWN = 255
         }
 
         public enum Clan : byte

@@ -19,9 +19,11 @@ namespace OopsAllNudist
         public bool dontStripSelf { get; set; } = false;
         public bool dontStripPC { get; set; } = false;
         public bool dontStripNPC { get; set; } = false;
-        public bool dontLalaSelf { get; set; } = false;
-        public bool dontLalaPC { get; set; } = false;
-        public bool dontLalaNPC { get; set; } = true;
+        public bool dontStripMale { get; set; } = false;
+        public bool dontStripFemale { get; set; } = false;
+        public bool dontMorphSelf { get; set; } = false;
+        public bool dontMorphPC { get; set; } = false;
+        public bool dontMorphNPC { get; set; } = true;
 
         public bool noChild { get; set; } = false;
         public bool childClothes { get; set; } = true;

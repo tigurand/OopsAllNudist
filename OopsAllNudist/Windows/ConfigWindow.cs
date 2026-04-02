@@ -12,8 +12,8 @@ namespace OopsAllNudist.Windows;
 internal class ConfigWindow : Window
 {
     private readonly Configuration configuration;
-    private readonly string[] race = ["Lalafell", "Hyur", "Elezen", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera", "Keep Original Race"];
-    private readonly string[] gender = ["Female", "Male", "Keep Original Sex"];
+    private readonly string[] race = ["Hyur", "Elezen", "Lalafell", "Miqo'te", "Roegadyn", "Au Ra", "Hrothgar", "Viera", "Keep Original Race"];
+    private readonly string[] gender = ["Male", "Female", "Keep Original Sex"];
     private readonly string[] clan = ["0", "1", "Automatic Clan"];
     private int selectedRaceIndex = 0;
     private int selectedGenderIndex = 0;
@@ -37,9 +37,9 @@ internal class ConfigWindow : Window
 
         selectedRaceIndex = configuration.SelectedRace switch
         {
-            Race.LALAFELL => 0,
-            Race.HYUR => 1,
-            Race.ELEZEN => 2,
+            Race.HYUR => 0,
+            Race.ELEZEN => 1,
+            Race.LALAFELL => 2,
             Race.MIQOTE => 3,
             Race.ROEGADYN => 4,
             Race.AU_RA => 5,
@@ -50,8 +50,8 @@ internal class ConfigWindow : Window
 
         selectedGenderIndex = configuration.SelectedGender switch
         {
-            Gender.FEMALE => 0,
-            Gender.MALE => 1,
+            Gender.MALE => 0,
+            Gender.FEMALE => 1,
             _ => 2
         };
 
@@ -118,7 +118,6 @@ internal class ConfigWindow : Window
         ImGui.PopItemWidth();
         ImGui.EndDisabled();
 
-        // Enabled
         bool _Enabled = configuration.enabled;
         if (ImGui.Checkbox("Enable", ref _Enabled))
         {
@@ -173,12 +172,34 @@ internal class ConfigWindow : Window
                 InvokeConfigChanged(true);
         }
 
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(260.0f);
+        bool _StripMale = !configuration.dontStripMale;
+        if (ImGui.Checkbox("Male##dontStripMale", ref _StripMale))
+        {
+            configuration.dontStripMale = !_StripMale;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+        ImGui.SameLine();
+
+        ImGui.SetCursorPosX(340.0f);
+        bool _StripFemale = !configuration.dontStripFemale;
+        if (ImGui.Checkbox("Female##dontStripFemale", ref _StripFemale))
+        {
+            configuration.dontStripFemale = !_StripFemale;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+
         ImGui.Text("Apply race/sex changes to:");
         ImGui.SetCursorPosX(20.0f);
-        bool _LalaSelf = !configuration.dontLalaSelf;
-        if (ImGui.Checkbox("Self##dontLalaSelf", ref _LalaSelf))
+        bool _MorphSelf = !configuration.dontMorphSelf;
+        if (ImGui.Checkbox("Self##dontMorphSelf", ref _MorphSelf))
         {
-            configuration.dontLalaSelf = !_LalaSelf;
+            configuration.dontMorphSelf = !_MorphSelf;
             configuration.Save();
             if (configuration.enabled && Service.objectTable.LocalPlayer != null)
                 OnConfigChangedSingleChar?.Invoke(Service.objectTable.LocalPlayer.Name.TextValue);
@@ -186,10 +207,10 @@ internal class ConfigWindow : Window
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(100.0f);
-        bool _LalaPC = !configuration.dontLalaPC;
-        if (ImGui.Checkbox("PCs##dontLalaPC", ref _LalaPC))
+        bool _MorphPC = !configuration.dontMorphPC;
+        if (ImGui.Checkbox("PCs##dontMorphPC", ref _MorphPC))
         {
-            configuration.dontLalaPC = !_LalaPC;
+            configuration.dontMorphPC = !_MorphPC;
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged(true);
@@ -197,10 +218,10 @@ internal class ConfigWindow : Window
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(180.0f);
-        bool _LalaNPC = !configuration.dontLalaNPC;
-        if (ImGui.Checkbox("NPCs##dontLalaNPC", ref _LalaNPC))
+        bool _MorphNPC = !configuration.dontMorphNPC;
+        if (ImGui.Checkbox("NPCs##dontMorphNPC", ref _MorphNPC))
         {
-            configuration.dontLalaNPC = !_LalaNPC;
+            configuration.dontMorphNPC = !_MorphNPC;
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged(true);
@@ -382,9 +403,9 @@ internal class ConfigWindow : Window
     {
         return index switch
         {
-            0 => Race.LALAFELL,
-            1 => Race.HYUR,
-            2 => Race.ELEZEN,
+            0 => Race.HYUR,
+            1 => Race.ELEZEN,
+            2 => Race.LALAFELL,
             3 => Race.MIQOTE,
             4 => Race.ROEGADYN,
             5 => Race.AU_RA,
@@ -398,8 +419,8 @@ internal class ConfigWindow : Window
     {
         return index switch
         {
-            0 => Gender.FEMALE,
-            1 => Gender.MALE,
+            0 => Gender.MALE,
+            1 => Gender.FEMALE,
             _ => Gender.UNKNOWN,
         };
     }

@@ -130,9 +130,9 @@ namespace OopsAllNudist.Utils
                         bool isPc = obj is IPlayerCharacter;
                         bool isSelf = IsSelfOrPlayerClone(obj, localPlayer);
 
-                        if (Service.configuration.dontLalaSelf && Service.configuration.dontStripSelf && isSelf) continue;
-                        if (!force && Service.configuration.dontLalaPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
-                        if (!force && Service.configuration.dontLalaNPC && Service.configuration.dontStripNPC && !isPc) continue;
+                        if (Service.configuration.dontMorphSelf && Service.configuration.dontStripSelf && isSelf) continue;
+                        if (!force && Service.configuration.dontMorphPC && Service.configuration.dontStripPC && isPc && !isSelf) continue;
+                        if (!force && Service.configuration.dontMorphNPC && Service.configuration.dontStripNPC && !isPc) continue;
 
                         Service.glamourerApi.RevertStateApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
                         Service.glamourerApi.RevertToAutomationApi?.Invoke(obj.ObjectIndex, 0, (ApplyFlag)0);
@@ -273,6 +273,8 @@ namespace OopsAllNudist.Utils
 
                 bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
                 bool isSelf = IsSelfOrPlayerClone(characterObject, localPlayer);
+                bool isMale = customData.Gender == Gender.MALE;
+                bool isFemale = customData.Gender == Gender.FEMALE;
 
                 if (Service.configuration.debugMode)
                 {
@@ -340,23 +342,25 @@ namespace OopsAllNudist.Utils
                     Marshal.StructureToPtr(customData, customizePtr, true);
                 }
 
-                bool dontLala = Service.configuration.dontLalaSelf && isSelf;
+                bool dontMorph = Service.configuration.dontMorphSelf && isSelf;
                 bool dontStrip = Service.configuration.dontStripSelf && isSelf;
 
-                dontLala |= Service.configuration.dontLalaPC && isPc && !isSelf;
-                dontLala |= Service.configuration.dontLalaNPC && !isPc;
+                dontMorph |= Service.configuration.dontMorphPC && isPc && !isSelf;
+                dontMorph |= Service.configuration.dontMorphNPC && !isPc;
 
                 dontStrip |= Service.configuration.dontStripPC && isPc && !isSelf;
                 dontStrip |= Service.configuration.dontStripNPC && !isPc;
+                dontStrip |= Service.configuration.dontStripMale && isMale;
+                dontStrip |= Service.configuration.dontStripFemale && isFemale;
 
                 if (Service.configuration.IsWhitelisted(charName))
                     return;
 
-                if (dontLala && dontStrip)
+                if (dontMorph && dontStrip)
                     if (!Service.configuration.noLala)
                         return;
 
-                if (!dontLala)
+                if (!dontMorph)
                     ChangeRace(customData, customizePtr, Service.configuration.SelectedRace, Service.configuration.SelectedGender);
 
                 if (customData.ModelType == 4 && Service.configuration.childClothes)
@@ -398,7 +402,7 @@ namespace OopsAllNudist.Utils
 
             if (raceChange)
             {
-                var clan = (Service.configuration.SelectedClan == Clan.UNKNOWN) ? (byte)(customData.Tribe % 2) : (byte)Service.configuration.SelectedClan;
+                var clan = (Service.configuration.SelectedClan == Clan.UNKNOWN) ? (byte)(1-(customData.Tribe % 2)) : (byte)Service.configuration.SelectedClan;
                 customData.Tribe = (byte)(((byte)selectedRace * 2) - 1 + clan);
                 customData.Race = selectedRace;
                 customData.FaceType %= 4;
