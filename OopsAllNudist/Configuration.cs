@@ -29,6 +29,7 @@ namespace OopsAllNudist
         public bool childClothes { get; set; } = true;
 
         public bool noLala { get; set; } = false;
+        public bool dontStripLala { get; set; } = true;
 
         public bool stripHats { get; set; } = true;
         public bool stripBodies { get; set; } = true;

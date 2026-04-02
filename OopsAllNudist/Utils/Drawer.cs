@@ -370,9 +370,16 @@ namespace OopsAllNudist.Utils
                 {
                     if (customData.Race == Race.LALAFELL)
                     {
-                        Random rnd = new Random();
-                        int raceRnd = rnd.Next(7) + 1;
-                        ChangeRace(customData, customizePtr, (Service.configuration.SelectedRace == Race.UNKNOWN || Service.configuration.SelectedRace == Race.LALAFELL) ? ConfigWindow.MapIndexToRace(raceRnd) : Service.configuration.SelectedRace, Service.configuration.SelectedGender);
+                        if (!Service.configuration.dontStripLala)
+                        {
+                            dontStrip = true;
+                        }
+                        else
+                        {
+                            Random rnd = new Random();
+                            int raceRnd = rnd.Next(7) + 1;
+                            ChangeRace(customData, customizePtr, (Service.configuration.SelectedRace == Race.UNKNOWN || Service.configuration.SelectedRace == Race.LALAFELL) ? ConfigWindow.MapIndexToRace(raceRnd) : Service.configuration.SelectedRace, Service.configuration.SelectedGender);
+                        }
                     }
                 }
 
@@ -397,7 +404,7 @@ namespace OopsAllNudist.Utils
             if (Service.configuration.SelectedRace != Race.UNKNOWN && Service.configuration.SelectedClan != Clan.UNKNOWN)
                 raceChange = true;
 
-            if (customData.Race == Race.LALAFELL && Service.configuration.noLala)
+            if (customData.Race == Race.LALAFELL && Service.configuration.noLala && Service.configuration.dontStripLala)
                 raceChange = true;
 
             if (raceChange)

@@ -251,7 +251,7 @@ internal class ConfigWindow : Window
                 InvokeConfigChanged(true);
         }
 
-        ImGui.Text("Turn Lalafells into other races?");
+        ImGui.Text("No Lalafells?");
         ImGui.SetCursorPosX(20.0f);
         bool _noLala = configuration.noLala;
         if (ImGui.Checkbox("No Lalafells", ref _noLala))
@@ -262,6 +262,20 @@ internal class ConfigWindow : Window
                 InvokeConfigChanged(true);
         }
         Tooltip("Warning: Enabling this will turn all Lalafells into other races, including NPCs.");
+
+        ImGui.BeginDisabled(!configuration.noLala);
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(180.0f);
+        bool _StripLala = !configuration.dontStripLala;
+        if (ImGui.Checkbox("Don't Strip Lalafells##dontStripLala", ref _StripLala))
+        {
+            configuration.dontStripLala = !_StripLala;
+            configuration.Save();
+            if (configuration.enabled)
+                InvokeConfigChanged(true);
+        }
+        Tooltip("Only disable strip for Lalafells, no race change.");
+        ImGui.EndDisabled();
 
         ImGui.Separator();
         bool _stripHats = configuration.stripHats;
