@@ -41,7 +41,7 @@ namespace OopsAllNudist.Utils
             if (character.Address == localPlayer.Address)
                 return true;
 
-            if (character.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player && character.Name.TextValue != "")
+            if (character.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc && character.Name.TextValue != "")
                 return false;
 
             if (character.Address == IntPtr.Zero || !character.IsValid())
@@ -58,10 +58,13 @@ namespace OopsAllNudist.Utils
             if (!isPotentialClone)
                 return false;
 
-            var targetCustomize = (character as ICharacter)?.Customize;
-            var localCustomize = localPlayer.Customize;
+            if (character is not ICharacter iCharacter)
+                return false;
 
-            if (targetCustomize == null || localCustomize == null || targetCustomize.Length < 26 || localCustomize.Length < 26)
+            Span<byte> targetCustomize = iCharacter.Customize;
+            Span<byte> localCustomize = localPlayer.Customize;
+
+            if (targetCustomize.Length < 26 || localCustomize.Length < 26)
                 return false;
 
             int[] indicesToCheck = { 0, 1, 4, 5, 6, 8, 9, 10, 11, 15, 20 };
@@ -76,14 +79,11 @@ namespace OopsAllNudist.Utils
                     allMatch = false;
                 }
             }
+
             if (allMatch)
-            {
                 Service.Log.Info("Customization matched, player's clone found.");
-            }
             else
-            {
                 Service.Log.Info("This is not player's clone.");
-            }
 
             return allMatch;
         }
