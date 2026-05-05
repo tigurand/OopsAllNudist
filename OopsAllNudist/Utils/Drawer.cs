@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Glamourer.Api.Enums;
 using Glamourer.Api.IpcSubscribers;
+using Newtonsoft.Json.Linq;
 using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
@@ -246,6 +247,15 @@ namespace OopsAllNudist.Utils
 
                 if (gameObj->ObjectKind == ObjectKind.Companion)
                     return;
+
+                var getState = Service.glamourerApi?.GetStateApi;
+                if (getState != null)
+                {
+                    var (resultCode, _) = getState.Invoke(gameObj->ObjectIndex);
+                    bool isLocked = resultCode == Glamourer.Api.Enums.GlamourerApiEc.InvalidKey;
+                    //Service.Log.Debug($"[GlamourerState] {charName} (idx={gameObj->ObjectIndex}) IsLocked={isLocked} (ApiEc={resultCode})");
+                    if (isLocked) return;
+                }
 
                 var revertState = Service.glamourerApi?.RevertStateApi;
                 var revertAutomation = Service.glamourerApi?.RevertToAutomationApi;
