@@ -243,6 +243,10 @@ namespace OopsAllNudist.Utils
 
                 Service.Log.Info($"Processing ObjectIndex={gameObj->ObjectIndex}, Name={charName}, ObjectKind={gameObj->ObjectKind}");
 
+                // Avoid some broken conversions
+                if (customData.Race == Race.UNKNOWN)
+                    return;
+
                 var actorKey = new ActorKey(gameObj->ObjectIndex, gameObj->EntityId);
 
                 if (gameObj->ObjectKind == ObjectKind.Companion)
@@ -313,10 +317,6 @@ namespace OopsAllNudist.Utils
                         }
                     }
                 }
-
-                // Avoid some broken conversions
-                if (customData.Race == Race.UNKNOWN)
-                    return;
 
                 if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
                     return;
