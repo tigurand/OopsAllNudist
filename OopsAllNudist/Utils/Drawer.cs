@@ -18,6 +18,9 @@ namespace OopsAllNudist.Utils
     {
         public static HashSet<ActorKey> RevertedActorIds = new HashSet<ActorKey>();
         private readonly IDisposable glamourerSubscription;
+
+        private static bool HasRunOnce = false;
+
         public Drawer()
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
@@ -214,6 +217,13 @@ namespace OopsAllNudist.Utils
         {
             try
             {
+                if (!HasRunOnce)
+                {
+                    if (!Service.configuration.enabled)
+                        return;
+                    HasRunOnce = true;
+                }
+
                 if (gameObjectAddress == IntPtr.Zero)
                 {
                     Service.Log.Error("Invalid gameObjectAddress in OnCreatingCharacterBase");
@@ -569,6 +579,7 @@ namespace OopsAllNudist.Utils
             Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
             Service.configWindow.OnConfigChangedSingleChar -= RefreshOnePlayer;
             glamourerSubscription?.Dispose();
+            HasRunOnce = false;
         }
     }
 }
