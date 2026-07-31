@@ -247,6 +247,12 @@ namespace OopsAllNudist.Utils
 
                 var customData = Marshal.PtrToStructure<CharaCustomizeData>(customizePtr);
                 var equipData = (ulong*)equipPtr;
+
+                bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
+                bool isSelf = IsSelfOrPlayerClone(characterObject, localPlayer);
+                bool isMale = customData.Gender == Gender.MALE;
+                bool isFemale = customData.Gender == Gender.FEMALE;
+
                 var charName = gameObj->NameString;
                 string[] childNPCNames = { "Alphinaud", "Alisaie" };
                 string[] specialNPCs = { "Esteem", "Gaia", "Gosetsu" };
@@ -295,11 +301,6 @@ namespace OopsAllNudist.Utils
                     RevertedActorIds.Clear();
                 }
 
-                bool isPc = gameObj->ObjectKind == ObjectKind.Pc;
-                bool isSelf = IsSelfOrPlayerClone(characterObject, localPlayer);
-                bool isMale = customData.Gender == Gender.MALE;
-                bool isFemale = customData.Gender == Gender.FEMALE;
-
                 if (Service.configuration.debugMode)
                 {
                     Plugin.OutputChatLine("Name: " + charName);
@@ -312,18 +313,21 @@ namespace OopsAllNudist.Utils
                     Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
                 }
 
-                foreach (string specialName in specialNPCs)
+                if (!isPc)
                 {
-                    if (!string.IsNullOrEmpty(charName) && charName.Contains(specialName, StringComparison.OrdinalIgnoreCase))
+                    foreach (string specialName in specialNPCs)
                     {
-                        switch (specialName)
+                        if (!string.IsNullOrEmpty(charName) && charName.Contains(specialName, StringComparison.OrdinalIgnoreCase))
                         {
-                            case "Gosetsu":
-                                customData.ModelType = 1;
-                                Marshal.StructureToPtr(customData, customizePtr, true);
-                                break;
-                            default:
-                                return;
+                            switch (specialName)
+                            {
+                                case "Gosetsu":
+                                    customData.ModelType = 1;
+                                    Marshal.StructureToPtr(customData, customizePtr, true);
+                                    break;
+                                default:
+                                    return;
+                            }
                         }
                     }
                 }
@@ -339,22 +343,25 @@ namespace OopsAllNudist.Utils
                             customData.RaceFeatureType = 0;
                         customData.ModelType = 1;
 
-                        foreach (string childName in childNPCNames)
+                        if (!isPc)
                         {
-                            if (!string.IsNullOrEmpty(charName) && charName.Contains(childName, StringComparison.OrdinalIgnoreCase))
+                            foreach (string childName in childNPCNames)
                             {
-                                switch (childName)
+                                if (!string.IsNullOrEmpty(charName) && charName.Contains(childName, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    case "Alphinaud":
-                                        customData.FaceType = 1;
-                                        customData.HairStyle = 169;
-                                        break;
-                                    case "Alisaie":
-                                        customData.FaceType = 4;
-                                        customData.HairStyle = 174;
-                                        break;
-                                    default:
-                                        break;
+                                    switch (childName)
+                                    {
+                                        case "Alphinaud":
+                                            customData.FaceType = 1;
+                                            customData.HairStyle = 169;
+                                            break;
+                                        case "Alisaie":
+                                            customData.FaceType = 4;
+                                            customData.HairStyle = 174;
+                                            break;
+                                        default:
+                                            break;
+                                    }
                                 }
                             }
                         }
