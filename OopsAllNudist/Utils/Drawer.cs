@@ -107,6 +107,12 @@ namespace OopsAllNudist.Utils
                 {
                     if (actor is IPlayerCharacter && ShouldResetDeathCounterOnStateChange(type) && !IsGlamourerResetSuppressed(actor.ObjectIndex))
                     {
+                        if (DeathStates.TryGetValue(actor.Name.TextValue, out var actorState) && actorState.StripApplied)
+                        {
+                            RemoveStrip(actor.ObjectIndex, actor.Name.TextValue);
+                            actorState.StripApplied = false;
+                        }
+
                         ResetDeathCounter(actor.Name.TextValue);
 
                         if (Service.configuration.debugMode)
@@ -224,6 +230,8 @@ namespace OopsAllNudist.Utils
 
             public bool ZoneRestoreArmed;
             public DateTime ZoneRestoreArmedUntil;
+
+            public bool StripApplied;
         }
 
         private static readonly ConcurrentDictionary<string, DeathState> DeathStates = new();
@@ -271,7 +279,26 @@ namespace OopsAllNudist.Utils
         {
             return !string.IsNullOrEmpty(name)
                 && DeathStates.TryGetValue(name, out var state)
-                && state.DeathCount > 0;
+                && state.StripApplied;
+        }
+
+        private static void RemoveStrip(int objectIndex, string name)
+        {
+            try
+            {
+                SuppressGlamourerReset(objectIndex);
+
+                Service.glamourerApi?.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                Service.glamourerApi?.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                Service.penumbraApi?.RedrawOne(objectIndex, RedrawType.Redraw);
+
+                if (Service.configuration.debugMode)
+                    Plugin.OutputChatLine($"Released strip-on-death for {name}.");
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error($"Error while releasing strip-on-death for {name}: {ex.Message}");
+            }
         }
 
         private static readonly Dictionary<int, DateTime> GlamourerResetSuppression = new();
@@ -330,6 +357,13 @@ namespace OopsAllNudist.Utils
                     if (state.JobId != jobId)
                     {
                         state.JobId = jobId;
+
+                        if (state.StripApplied)
+                        {
+                            RemoveStrip(pc.ObjectIndex, name);
+                            state.StripApplied = false;
+                        }
+
                         ClearDeathCount(state);
                         state.WasDead = pc.IsDead;
                         continue;
@@ -377,6 +411,12 @@ namespace OopsAllNudist.Utils
 
             if (DeathStates.TryGetValue(name, out var state))
             {
+                if (state.StripApplied)
+                {
+                    RemoveStrip(localPlayer.ObjectIndex, name);
+                    state.StripApplied = false;
+                }
+
                 ClearDeathCount(state);
                 state.WasDead = localPlayer.IsDead;
 
@@ -416,6 +456,7 @@ namespace OopsAllNudist.Utils
             bool stripAll = state.DeathCount >= 2;
 
             state.StripAll = stripAll;
+            state.StripApplied = true;
 
             StripClothes(pc.ObjectIndex, isSelf, stripAll);
 
@@ -476,6 +517,7 @@ namespace OopsAllNudist.Utils
                 if (state.ZoneRestoreArmed && DateTime.UtcNow < state.ZoneRestoreArmedUntil)
                 {
                     state.ZoneRestoreArmed = false;
+                    state.StripApplied = true;
 
                     bool isSelf = IsSelfOrPlayerClone(pc, Service.objectTable.LocalPlayer);
                     StripClothes(pc.ObjectIndex, isSelf, state.StripAll);
@@ -492,6 +534,7 @@ namespace OopsAllNudist.Utils
                 }
 
                 state.ZoneRestoreArmed = false;
+                state.StripApplied = false;
                 ClearDeathCount(state);
 
                 if (Service.configuration.debugMode)
