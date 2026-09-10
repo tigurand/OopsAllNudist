@@ -42,11 +42,14 @@ namespace OopsAllNudist
         public bool empLegsRandom { get; set; } = false;
         public bool empLegsRandomSelf { get; set; } = false;
 
+        public bool stripOnDeathSelf { get; set; } = false;
+        public bool stripOnDeathPC { get; set; } = false;
+        public bool stripOnDeathInPvP { get; set; } = false;
+
         public SortedSet<string> Whitelist { get; set; } = new(StringComparer.Ordinal);
 
         public bool debugMode { get; set; } = false;
 
-        // the below exist just to make saving less cumbersome
         [NonSerialized]
         private IDalamudPluginInterface? pluginInterface;
 

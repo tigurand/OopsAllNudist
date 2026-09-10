@@ -1,12 +1,15 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Glamourer.Api.Enums;
 using Glamourer.Api.IpcSubscribers;
 using Newtonsoft.Json.Linq;
 using OopsAllNudist.Windows;
 using Penumbra.Api.Enums;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -25,6 +28,8 @@ namespace OopsAllNudist.Utils
         {
             Service.configWindow.OnConfigChanged += RefreshAllPlayers;
             Service.configWindow.OnConfigChangedSingleChar += RefreshOnePlayer;
+            Service.Framework.Update += OnFrameworkUpdate;
+            Service.clientState.TerritoryChanged += OnTerritoryChanged;
             glamourerSubscription = StateFinalized.Subscriber(Service.pluginInterface, OnGlamourerStateChange);
 
             if (Service.configuration.enabled)
@@ -100,17 +105,34 @@ namespace OopsAllNudist.Utils
 
                 if (actor != null)
                 {
+                    if (actor is IPlayerCharacter && ShouldResetDeathCounterOnStateChange(type) && !IsGlamourerResetSuppressed(actor.ObjectIndex))
+                    {
+                        ResetDeathCounter(actor.Name.TextValue);
+
+                        if (Service.configuration.debugMode)
+                            Plugin.OutputChatLine($"Glamourer change ({type}) reset the death counter for {actor.Name}.");
+                    }
+
                     if (Service.configuration.debugMode)
                     {
                         Plugin.OutputChatLine($"Glamourer change ({type}) detected on {actor.Name}. Redrawing.");
                     }
                     Service.penumbraApi.RedrawOne(actor.ObjectIndex, RedrawType.Redraw);
                 }
+                else if (Service.configuration.debugMode)
+                {
+                    Plugin.OutputChatLine($"Glamourer change ({type}) detected, but the actor could not be resolved.");
+                }
             }
             catch (Exception ex)
             {
                 Service.Log.Error($"Error while handling Glamourer state change: {ex.Message}");
             }
+        }
+
+        private static bool ShouldResetDeathCounterOnStateChange(StateFinalizationType type)
+        {
+            return type != StateFinalizationType.ModelChange;
         }
 
         public static void RefreshAllPlayers(bool force)
@@ -185,6 +207,330 @@ namespace OopsAllNudist.Utils
                 Service.Log.Error($"Error while refreshing player {charName}: {ex.Message}");
             }
         }
+
+        #region Strip on Death
+
+        private sealed class DeathState
+        {
+            public int DeathCount;
+            public uint JobId;
+            public bool WasDead;
+            public bool StripAll;
+
+            public string? StateSnapshot;
+            public bool SnapshotPending;
+            public DateTime SnapshotDueAt;
+            public DateTime NextCheckAt;
+
+            public bool ZoneRestoreArmed;
+            public DateTime ZoneRestoreArmedUntil;
+        }
+
+        private static readonly ConcurrentDictionary<string, DeathState> DeathStates = new();
+        private static int LastGearsetIndex = -1;
+
+        private static readonly TimeSpan ZoneRestoreWindow = TimeSpan.FromSeconds(5);
+
+        private static void OnTerritoryChanged(uint territoryType)
+        {
+            var until = DateTime.UtcNow + ZoneRestoreWindow;
+
+            foreach (var state in DeathStates.Values)
+            {
+                if (state.DeathCount > 0)
+                {
+                    state.ZoneRestoreArmed = true;
+                    state.ZoneRestoreArmedUntil = until;
+                }
+            }
+        }
+
+        public static void ResetDeathCounters()
+        {
+            DeathStates.Clear();
+        }
+
+        private static void ResetDeathCounter(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return;
+
+            if (DeathStates.TryGetValue(name, out var state))
+                ClearDeathCount(state);
+        }
+
+        private static void ClearDeathCount(DeathState state)
+        {
+            state.DeathCount = 0;
+            state.StateSnapshot = null;
+            state.SnapshotPending = false;
+            state.ZoneRestoreArmed = false;
+        }
+
+        private static bool HasActiveDeathStrip(string name)
+        {
+            return !string.IsNullOrEmpty(name)
+                && DeathStates.TryGetValue(name, out var state)
+                && state.DeathCount > 0;
+        }
+
+        private static readonly Dictionary<int, DateTime> GlamourerResetSuppression = new();
+        private static readonly TimeSpan GlamourerResetSuppressionWindow = TimeSpan.FromMilliseconds(500);
+
+        private static void SuppressGlamourerReset(int objectIndex)
+        {
+            GlamourerResetSuppression[objectIndex] = DateTime.UtcNow + GlamourerResetSuppressionWindow;
+        }
+
+        private static bool IsGlamourerResetSuppressed(int objectIndex)
+        {
+            if (GlamourerResetSuppression.TryGetValue(objectIndex, out var expiry))
+            {
+                if (DateTime.UtcNow <= expiry)
+                    return true;
+
+                GlamourerResetSuppression.Remove(objectIndex);
+            }
+
+            return false;
+        }
+
+        private static void OnFrameworkUpdate(IFramework framework)
+        {
+            try
+            {
+                if (!Service.clientState.IsLoggedIn)
+                    return;
+
+                var localPlayer = Service.objectTable.LocalPlayer;
+                if (localPlayer == null)
+                    return;
+
+                UpdateGearsetReset(localPlayer);
+
+                foreach (var obj in Service.objectTable)
+                {
+                    if (obj is not IPlayerCharacter pc)
+                        continue;
+                    if (!pc.IsValid())
+                        continue;
+
+                    string name = pc.Name.TextValue;
+                    if (string.IsNullOrEmpty(name))
+                        continue;
+
+                    uint jobId = pc.ClassJob.RowId;
+
+                    if (!DeathStates.TryGetValue(name, out var state))
+                    {
+                        DeathStates[name] = new DeathState { JobId = jobId, WasDead = pc.IsDead };
+                        continue;
+                    }
+
+                    if (state.JobId != jobId)
+                    {
+                        state.JobId = jobId;
+                        ClearDeathCount(state);
+                        state.WasDead = pc.IsDead;
+                        continue;
+                    }
+
+                    bool dead = pc.IsDead;
+                    if (dead && !state.WasDead)
+                    {
+                        state.WasDead = true;
+                        HandleDeath(pc, name, state);
+                    }
+                    else if (!dead && state.WasDead)
+                    {
+                        state.WasDead = false;
+                    }
+
+                    CheckReequip(pc, state);
+                }
+            }
+            catch (Exception ex)
+            {
+                Service.Log.Error($"Error in strip on death tracker: {ex.Message}");
+            }
+        }
+
+        private static unsafe void UpdateGearsetReset(IPlayerCharacter localPlayer)
+        {
+            int currentIndex = -1;
+
+            var gearsetModule = RaptureGearsetModule.Instance();
+            if (gearsetModule != null)
+                currentIndex = gearsetModule->CurrentGearsetIndex;
+
+            if (currentIndex == LastGearsetIndex)
+                return;
+
+            LastGearsetIndex = currentIndex;
+
+            if (currentIndex < 0)
+                return;
+
+            string name = localPlayer.Name.TextValue;
+            if (string.IsNullOrEmpty(name))
+                return;
+
+            if (DeathStates.TryGetValue(name, out var state))
+            {
+                ClearDeathCount(state);
+                state.WasDead = localPlayer.IsDead;
+
+                if (Service.configuration.debugMode)
+                    Plugin.OutputChatLine($"Gearset change detected. Death counter reset for {name}.");
+            }
+        }
+
+        private static void HandleDeath(IPlayerCharacter pc, string name, DeathState state)
+        {
+            var configuration = Service.configuration;
+
+            bool isSelf = IsSelfOrPlayerClone(pc, Service.objectTable.LocalPlayer);
+            bool enabled = isSelf ? configuration.stripOnDeathSelf : configuration.stripOnDeathPC;
+            if (!enabled)
+                return;
+
+            var getState = Service.glamourerApi?.GetStateApi;
+            if (getState != null)
+            {
+                var (resultCode, _) = getState.Invoke(pc.ObjectIndex);
+                if (resultCode == GlamourerApiEc.InvalidKey)
+                    return;
+            }
+
+            if (Service.clientState.IsPvP && !configuration.stripOnDeathInPvP)
+                return;
+
+            if (configuration.IsWhitelisted(name))
+                return;
+
+            if (!PassesDeathStripFilters(pc))
+                return;
+
+            state.DeathCount++;
+
+            bool stripAll = state.DeathCount >= 2;
+
+            state.StripAll = stripAll;
+
+            StripClothes(pc.ObjectIndex, isSelf, stripAll);
+
+            state.StateSnapshot = null;
+            state.SnapshotPending = true;
+            state.SnapshotDueAt = DateTime.UtcNow.AddMilliseconds(500);
+            state.NextCheckAt = state.SnapshotDueAt;
+
+            if (configuration.debugMode)
+                Plugin.OutputChatLine($"Strip on death (count {state.DeathCount}, all={stripAll}) applied to {name}.");
+        }
+
+        private static void CheckReequip(IPlayerCharacter pc, DeathState state)
+        {
+            if (state.DeathCount <= 0)
+            {
+                state.StateSnapshot = null;
+                state.SnapshotPending = false;
+                return;
+            }
+
+            if (DateTime.UtcNow < state.NextCheckAt)
+                return;
+
+            state.NextCheckAt = DateTime.UtcNow.AddMilliseconds(500);
+
+            var getState = Service.glamourerApi?.GetStateApi;
+            if (getState == null)
+                return;
+
+            var (resultCode, stateObject) = getState.Invoke(pc.ObjectIndex);
+            if (resultCode != GlamourerApiEc.Success || stateObject == null)
+                return;
+
+            string current = stateObject.ToString(Newtonsoft.Json.Formatting.None);
+
+            if (state.SnapshotPending)
+            {
+                if (DateTime.UtcNow >= state.SnapshotDueAt)
+                {
+                    state.StateSnapshot = current;
+                    state.SnapshotPending = false;
+
+                    if (Service.configuration.debugMode)
+                        Plugin.OutputChatLine($"Death snapshot taken for {pc.Name}.");
+                }
+                return;
+            }
+
+            if (state.StateSnapshot == null)
+            {
+                state.StateSnapshot = current;
+                return;
+            }
+
+            if (!string.Equals(state.StateSnapshot, current, StringComparison.Ordinal))
+            {
+                if (state.ZoneRestoreArmed && DateTime.UtcNow < state.ZoneRestoreArmedUntil)
+                {
+                    state.ZoneRestoreArmed = false;
+
+                    bool isSelf = IsSelfOrPlayerClone(pc, Service.objectTable.LocalPlayer);
+                    StripClothes(pc.ObjectIndex, isSelf, state.StripAll);
+
+                    state.StateSnapshot = null;
+                    state.SnapshotPending = true;
+                    state.SnapshotDueAt = DateTime.UtcNow.AddMilliseconds(500);
+                    state.NextCheckAt = state.SnapshotDueAt;
+
+                    if (Service.configuration.debugMode)
+                        Plugin.OutputChatLine($"Re-applied strip-on-death for {pc.Name} after a territory change.");
+
+                    return;
+                }
+
+                state.ZoneRestoreArmed = false;
+                ClearDeathCount(state);
+
+                if (Service.configuration.debugMode)
+                    Plugin.OutputChatLine($"Glamourer state changed on {pc.Name}. Death counter reset.");
+            }
+        }
+
+        private static bool PassesDeathStripFilters(ICharacter character)
+        {
+            var configuration = Service.configuration;
+            var customize = character.CustomizeData;
+
+            var race = (Race)customize.Race;
+            var gender = (Gender)customize.Sex;
+
+            if (configuration.dontStripMale && gender == Gender.MALE)
+                return false;
+            if (configuration.dontStripFemale && gender == Gender.FEMALE)
+                return false;
+
+            if (configuration.SelectedGender != Gender.UNKNOWN && gender != configuration.SelectedGender)
+                return false;
+
+            bool isLala = race == Race.LALAFELL;
+
+            if (isLala && !configuration.noLala && configuration.dontStripLala)
+                return false;
+
+            if (configuration.SelectedRace != Race.UNKNOWN)
+            {
+                bool lalaConverted = isLala && configuration.noLala;
+                if (!lalaConverted && race != configuration.SelectedRace)
+                    return false;
+            }
+
+            return true;
+        }
+
+        #endregion
 
         public struct ActorKey
         {
@@ -284,6 +630,16 @@ namespace OopsAllNudist.Utils
 
                 if (!Service.configuration.enabled)
                 {
+                    if (HasActiveDeathStrip(charName))
+                    {
+                        Service.Log.Info($"Skipping revert for {charName}: active strip-on-death.");
+
+                        if (Service.configuration.debugMode)
+                            Plugin.OutputChatLine($"Keeping strip-on-death for {charName} across a model rebuild.");
+
+                        return;
+                    }
+
                     Service.Log.Info($"Accessing actor for {actorKey}");
                     if (!RevertedActorIds.Contains(actorKey))
                     {
@@ -488,7 +844,7 @@ namespace OopsAllNudist.Utils
             }
         }
 
-        private static void StripClothes(int objectIndex, bool isSelf)
+        private static void StripClothes(int objectIndex, bool isSelf, bool stripAll = false)
         {
             try
             {
@@ -505,40 +861,49 @@ namespace OopsAllNudist.Utils
 
                 var setItem = Service.glamourerApi.SetItemApi;
 
+                SuppressGlamourerReset(objectIndex);
+
                 var noStains = new List<byte>();
 
                 var accessorySlots = new[]
                 {
-                ApiEquipSlot.Ears,
-                ApiEquipSlot.Neck,
-                ApiEquipSlot.Wrists,
-                ApiEquipSlot.RFinger,
-                ApiEquipSlot.LFinger,
-            };
+                    ApiEquipSlot.Ears,
+                    ApiEquipSlot.Neck,
+                    ApiEquipSlot.Wrists,
+                    ApiEquipSlot.RFinger,
+                    ApiEquipSlot.LFinger,
+                };
 
                 int isEmperor = CheckRandom(isSelf);
 
-                if (Service.configuration.stripHats)
+                bool doHats = stripAll || Service.configuration.stripHats;
+                bool doBodies = stripAll || Service.configuration.stripBodies;
+                bool doGloves = stripAll || Service.configuration.stripGloves;
+                bool doBoots = stripAll || Service.configuration.stripBoots;
+                bool doLegs = stripAll || Service.configuration.stripLegs;
+                bool doAccessories = stripAll || Service.configuration.stripAccessories;
+
+                if (doHats)
                 {
                     setItem.Invoke(objectIndex, ApiEquipSlot.Head, 0, noStains, 0, 0);
                 }
-                if (Service.configuration.stripBodies)
+                if (doBodies)
                 {
                     setItem.Invoke(objectIndex, ApiEquipSlot.Body, 0, noStains, 0, 0);
                 }
-                if (Service.configuration.stripGloves)
+                if (doGloves)
                 {
                     setItem.Invoke(objectIndex, ApiEquipSlot.Hands, 0, noStains, 0, 0);
                 }
-                if (Service.configuration.stripBoots)
+                if (doBoots)
                 {
                     setItem.Invoke(objectIndex, ApiEquipSlot.Feet, 0, noStains, 0, 0);
                 }
-                if (Service.configuration.stripLegs)
+                if (doLegs)
                 {
                     setItem.Invoke(objectIndex, ApiEquipSlot.Legs, (isEmperor == 0) ? 0 : 10035U, noStains, 0, 0);
                 }
-                if (Service.configuration.stripAccessories)
+                if (doAccessories)
                 {
                     foreach (var slot in accessorySlots)
                     {
@@ -585,6 +950,8 @@ namespace OopsAllNudist.Utils
         {
             Service.configWindow.OnConfigChanged -= RefreshAllPlayers;
             Service.configWindow.OnConfigChangedSingleChar -= RefreshOnePlayer;
+            Service.Framework.Update -= OnFrameworkUpdate;
+            Service.clientState.TerritoryChanged -= OnTerritoryChanged;
             glamourerSubscription?.Dispose();
             HasRunOnce = false;
         }

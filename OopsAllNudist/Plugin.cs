@@ -105,6 +105,7 @@ namespace OopsAllNudist
             }
             if (args == "refresh")
             {
+                Drawer.ResetDeathCounters();
                 Drawer.RefreshAllPlayers(false);
                 return;
             }

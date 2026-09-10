@@ -28,7 +28,7 @@ internal class ConfigWindow : Window
     }
 
     public ConfigWindow(Plugin plugin) : base(
-        "OopsAllNudist Configuration Window",
+        "OopsAllNudist Configuration",
         ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize)
     {
         configuration = Service.configuration;
@@ -74,6 +74,26 @@ internal class ConfigWindow : Window
     }
 
     public override void Draw()
+    {
+        if (ImGui.BeginTabBar("###OopsAllNudistTabs"))
+        {
+            if (ImGui.BeginTabItem("Main"))
+            {
+                DrawMainTab();
+                ImGui.EndTabItem();
+            }
+
+            if (ImGui.BeginTabItem("Extra"))
+            {
+                DrawExtraTab();
+                ImGui.EndTabItem();
+            }
+
+            ImGui.EndTabBar();
+        }
+    }
+
+    private void DrawMainTab()
     {
         // select race
         ImGui.AlignTextToFramePadding();
@@ -411,6 +431,58 @@ internal class ConfigWindow : Window
         {
             Service.whitelistWindow.IsOpen = true;
         }
+    }
+
+    private const string DeathResetTooltip =
+        "The death counter resets when \"/nudist refresh\" is run manually, " +
+        "when the character changes job or gearset, or when their Glamourer state is changed.\n" +
+        "This is not persistent: equipment can be restored by /nudist refresh, " +
+        "by changing it in Glamourer, or by changing it in the game.";
+
+    private void DrawExtraTab()
+    {
+        ImGui.Text("Strip on Death");
+        ImGui.Separator();
+        ImGui.TextWrapped(
+            "Strip a character's equipment when they die. This is an extra, non-persistent effect. " +
+            "The equipment is only removed once per death and can be re-equipped afterwards.");
+
+        ImGui.Spacing();
+
+        bool _stripOnDeathSelf = configuration.stripOnDeathSelf;
+        if (ImGui.Checkbox("Self##stripOnDeathSelf", ref _stripOnDeathSelf))
+        {
+            configuration.stripOnDeathSelf = _stripOnDeathSelf;
+            configuration.Save();
+        }
+        Tooltip(DeathResetTooltip);
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(100.0f);
+        bool _stripOnDeathPC = configuration.stripOnDeathPC;
+        if (ImGui.Checkbox("PCs##stripOnDeathPC", ref _stripOnDeathPC))
+        {
+            configuration.stripOnDeathPC = _stripOnDeathPC;
+            configuration.Save();
+        }
+        Tooltip(DeathResetTooltip);
+
+        ImGui.Spacing();
+
+        bool _stripOnDeathInPvP = configuration.stripOnDeathInPvP;
+        if (ImGui.Checkbox("Also strip in PvP##stripOnDeathInPvP", ref _stripOnDeathInPvP))
+        {
+            configuration.stripOnDeathInPvP = _stripOnDeathInPvP;
+            configuration.Save();
+        }
+        Tooltip("When disabled, strip on death only works in PvE.");
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.TextWrapped("Notes:");
+        ImGui.BulletText("Only Self and non-synced other players (PCs) are affected, if enabled.");
+        ImGui.BulletText("The first death strips the configured slots, later deaths strip all slots.");
+        ImGui.BulletText("This works even when the main \"Enable\" option is turned off.");
     }
 
     public static Race MapIndexToRace(int index)
