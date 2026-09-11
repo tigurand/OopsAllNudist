@@ -109,8 +109,8 @@ namespace OopsAllNudist.Utils
                     {
                         if (DeathStates.TryGetValue(actor.Name.TextValue, out var actorState) && actorState.StripApplied)
                         {
-                            RemoveStrip(actor.ObjectIndex, actor.Name.TextValue);
-                            actorState.StripApplied = false;
+                            if (RemoveStrip(actor.ObjectIndex, actor.Name.TextValue))
+                                actorState.StripApplied = false;
                         }
 
                         ResetDeathCounter(actor.Name.TextValue);
@@ -232,6 +232,8 @@ namespace OopsAllNudist.Utils
             public DateTime ZoneRestoreArmedUntil;
 
             public bool StripApplied;
+
+            public DateTime NextRemovalRetryAt;
         }
 
         private static readonly ConcurrentDictionary<string, DeathState> DeathStates = new();
@@ -282,22 +284,36 @@ namespace OopsAllNudist.Utils
                 && state.StripApplied;
         }
 
-        private static void RemoveStrip(int objectIndex, string name)
+        private static bool RemoveStrip(int objectIndex, string name)
         {
             try
             {
+                var revertState = Service.glamourerApi?.RevertStateApi;
+                var revertAutomation = Service.glamourerApi?.RevertToAutomationApi;
+                if (revertState == null || revertAutomation == null)
+                    return false;
+
                 SuppressGlamourerReset(objectIndex);
 
-                Service.glamourerApi?.RevertStateApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
-                Service.glamourerApi?.RevertToAutomationApi?.Invoke(objectIndex, 0, (ApplyFlag)0);
+                var result = revertState.Invoke(objectIndex, 0, (ApplyFlag)0);
+                if (result != GlamourerApiEc.Success && result != GlamourerApiEc.NothingDone)
+                {
+                    Service.Log.Debug($"Could not release strip-on-death for {name}: {result}");
+                    return false;
+                }
+
+                revertAutomation.Invoke(objectIndex, 0, (ApplyFlag)0);
                 Service.penumbraApi?.RedrawOne(objectIndex, RedrawType.Redraw);
 
                 if (Service.configuration.debugMode)
                     Plugin.OutputChatLine($"Released strip-on-death for {name}.");
+
+                return true;
             }
             catch (Exception ex)
             {
                 Service.Log.Error($"Error while releasing strip-on-death for {name}: {ex.Message}");
+                return false;
             }
         }
 
@@ -358,11 +374,8 @@ namespace OopsAllNudist.Utils
                     {
                         state.JobId = jobId;
 
-                        if (state.StripApplied)
-                        {
-                            RemoveStrip(pc.ObjectIndex, name);
+                        if (state.StripApplied && RemoveStrip(pc.ObjectIndex, name))
                             state.StripApplied = false;
-                        }
 
                         ClearDeathCount(state);
                         state.WasDead = pc.IsDead;
@@ -381,6 +394,14 @@ namespace OopsAllNudist.Utils
                     }
 
                     CheckReequip(pc, state);
+
+                    if (state.StripApplied && state.DeathCount == 0 && DateTime.UtcNow >= state.NextRemovalRetryAt)
+                    {
+                        state.NextRemovalRetryAt = DateTime.UtcNow.AddSeconds(1);
+
+                        if (RemoveStrip(pc.ObjectIndex, name))
+                            state.StripApplied = false;
+                    }
                 }
             }
             catch (Exception ex)
@@ -411,11 +432,8 @@ namespace OopsAllNudist.Utils
 
             if (DeathStates.TryGetValue(name, out var state))
             {
-                if (state.StripApplied)
-                {
-                    RemoveStrip(localPlayer.ObjectIndex, name);
+                if (state.StripApplied && RemoveStrip(localPlayer.ObjectIndex, name))
                     state.StripApplied = false;
-                }
 
                 ClearDeathCount(state);
                 state.WasDead = localPlayer.IsDead;
@@ -457,6 +475,7 @@ namespace OopsAllNudist.Utils
 
             state.StripAll = stripAll;
             state.StripApplied = true;
+            state.NextRemovalRetryAt = DateTime.MinValue;
 
             StripClothes(pc.ObjectIndex, isSelf, stripAll);
 
