@@ -579,7 +579,7 @@ namespace OopsAllNudist.Utils
 
             bool isLala = race == Race.LALAFELL;
 
-            if (isLala && !configuration.noLala && configuration.dontStripLala)
+            if (isLala && configuration.noLala && configuration.dontStripLala)
                 return false;
 
             if (configuration.SelectedRace != Race.UNKNOWN)
@@ -663,61 +663,7 @@ namespace OopsAllNudist.Utils
 
                 var charName = gameObj->NameString;
                 string[] childNPCNames = { "Alphinaud", "Alisaie" };
-                string[] specialNPCs = { "Esteem", "Gaia", "Gosetsu" };
-
-                Service.Log.Info($"Processing ObjectIndex={gameObj->ObjectIndex}, Name={charName}, ObjectKind={gameObj->ObjectKind}");
-
-                // Avoid some broken conversions
-                if (customData.Race == Race.UNKNOWN)
-                    return;
-
-                var actorKey = new ActorKey(gameObj->ObjectIndex, gameObj->EntityId);
-
-                if (gameObj->ObjectKind == ObjectKind.Companion)
-                    return;
-
-                var getState = Service.glamourerApi?.GetStateApi;
-                if (getState != null)
-                {
-                    var (resultCode, _) = getState.Invoke(gameObj->ObjectIndex);
-                    bool isLocked = resultCode == Glamourer.Api.Enums.GlamourerApiEc.InvalidKey;
-                    //Service.Log.Debug($"[GlamourerState] {charName} (idx={gameObj->ObjectIndex}) IsLocked={isLocked} (ApiEc={resultCode})");
-                    if (isLocked) return;
-                }
-
-                var revertState = Service.glamourerApi?.RevertStateApi;
-                var revertAutomation = Service.glamourerApi?.RevertToAutomationApi;
-                if (revertState == null || revertAutomation == null)
-                    return;
-
-                if (!Service.configuration.enabled)
-                {
-                    if (HasActiveDeathStrip(charName))
-                    {
-                        Service.Log.Info($"Skipping revert for {charName}: active strip-on-death.");
-
-                        if (Service.configuration.debugMode)
-                            Plugin.OutputChatLine($"Keeping strip-on-death for {charName} across a model rebuild.");
-
-                        return;
-                    }
-
-                    Service.Log.Info($"Accessing actor for {actorKey}");
-                    if (!RevertedActorIds.Contains(actorKey))
-                    {
-                        Service.Log.Info($"Reverting state for {actorKey}");
-                        revertState.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
-                        revertAutomation.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
-                        RevertedActorIds.Add(actorKey);
-                    }
-                    return;
-                }
-
-                if (RevertedActorIds.Count > 0)
-                {
-                    Service.Log.Info("Clearing RevertedActorIds");
-                    RevertedActorIds.Clear();
-                }
+                string[] specialNPCs = { "Esteem", "Gaia", "Gosetsu", "Gungnir", "Odin" };
 
                 if (Service.configuration.debugMode)
                 {
@@ -731,26 +677,10 @@ namespace OopsAllNudist.Utils
                     Plugin.OutputChatLine("RaceFeatureType: " + customData.RaceFeatureType);
                 }
 
-                if (!isPc)
-                {
-                    foreach (string specialName in specialNPCs)
-                    {
-                        if (!string.IsNullOrEmpty(charName) && charName.Contains(specialName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            switch (specialName)
-                            {
-                                case "Gosetsu":
-                                    customData.ModelType = 1;
-                                    Marshal.StructureToPtr(customData, customizePtr, true);
-                                    break;
-                                default:
-                                    return;
-                            }
-                        }
-                    }
-                }
+                Service.Log.Info($"Processing ObjectIndex={gameObj->ObjectIndex}, Name={charName}, ObjectKind={gameObj->ObjectKind}");
 
-                if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
+                // Avoid some broken conversions
+                if (customData.Race == Race.UNKNOWN)
                     return;
 
                 if (Service.configuration.noChild)
@@ -787,6 +717,76 @@ namespace OopsAllNudist.Utils
                     Marshal.StructureToPtr(customData, customizePtr, true);
                 }
 
+                if (!isPc)
+                {
+                    foreach (string specialName in specialNPCs)
+                    {
+                        if (!string.IsNullOrEmpty(charName) && charName.Contains(specialName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            switch (specialName)
+                            {
+                                case "Gosetsu":
+                                    customData.ModelType = 1;
+                                    Marshal.StructureToPtr(customData, customizePtr, true);
+                                    break;
+                                default:
+                                    return;
+                            }
+                        }
+                    }
+                }
+
+                if (!isPc && gameObj->ObjectKind != ObjectKind.EventNpc && gameObj->ObjectKind != ObjectKind.BattleNpc && gameObj->ObjectKind != ObjectKind.Retainer)
+                    return;
+
+                if (gameObj->ObjectKind == ObjectKind.Companion)
+                    return;
+
+                var getState = Service.glamourerApi?.GetStateApi;
+                if (getState != null)
+                {
+                    var (resultCode, _) = getState.Invoke(gameObj->ObjectIndex);
+                    bool isLocked = resultCode == Glamourer.Api.Enums.GlamourerApiEc.InvalidKey;
+                    //Service.Log.Debug($"[GlamourerState] {charName} (idx={gameObj->ObjectIndex}) IsLocked={isLocked} (ApiEc={resultCode})");
+                    if (isLocked) return;
+                }
+
+                var revertState = Service.glamourerApi?.RevertStateApi;
+                var revertAutomation = Service.glamourerApi?.RevertToAutomationApi;
+                if (revertState == null || revertAutomation == null)
+                    return;
+
+                var actorKey = new ActorKey(gameObj->ObjectIndex, gameObj->EntityId);
+
+                if (!Service.configuration.enabled)
+                {
+                    if (HasActiveDeathStrip(charName))
+                    {
+                        Service.Log.Info($"Skipping revert for {charName}: active strip-on-death.");
+
+                        if (Service.configuration.debugMode)
+                            Plugin.OutputChatLine($"Keeping strip-on-death for {charName} across a model rebuild.");
+
+                        return;
+                    }
+
+                    Service.Log.Info($"Accessing actor for {actorKey}");
+                    if (!RevertedActorIds.Contains(actorKey))
+                    {
+                        Service.Log.Info($"Reverting state for {actorKey}");
+                        revertState.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
+                        revertAutomation.Invoke(gameObj->ObjectIndex, 0, (ApplyFlag)0);
+                        RevertedActorIds.Add(actorKey);
+                    }
+                    return;
+                }
+
+                if (RevertedActorIds.Count > 0)
+                {
+                    Service.Log.Info("Clearing RevertedActorIds");
+                    RevertedActorIds.Clear();
+                }
+
                 bool dontMorph = Service.configuration.dontMorphSelf && isSelf;
                 bool dontStrip = Service.configuration.dontStripSelf && isSelf;
 
@@ -815,7 +815,7 @@ namespace OopsAllNudist.Utils
                 {
                     if (customData.Race == Race.LALAFELL)
                     {
-                        if (!Service.configuration.dontStripLala)
+                        if (Service.configuration.dontStripLala)
                         {
                             dontStrip = true;
                         }
@@ -849,7 +849,7 @@ namespace OopsAllNudist.Utils
             if (Service.configuration.SelectedRace != Race.UNKNOWN && Service.configuration.SelectedClan != Clan.UNKNOWN)
                 raceChange = true;
 
-            if (customData.Race == Race.LALAFELL && Service.configuration.noLala && Service.configuration.dontStripLala)
+            if (customData.Race == Race.LALAFELL && Service.configuration.noLala && !Service.configuration.dontStripLala)
                 raceChange = true;
 
             if (raceChange)

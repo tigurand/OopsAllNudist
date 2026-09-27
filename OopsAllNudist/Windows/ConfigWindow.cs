@@ -286,10 +286,10 @@ internal class ConfigWindow : Window
         ImGui.BeginDisabled(!configuration.noLala);
         ImGui.SameLine();
         ImGui.SetCursorPosX(180.0f);
-        bool _StripLala = !configuration.dontStripLala;
-        if (ImGui.Checkbox("Don't Strip Lalafells##dontStripLala", ref _StripLala))
+        bool _DontStripLala = configuration.dontStripLala;
+        if (ImGui.Checkbox("Don't Strip Lalafells##dontStripLala", ref _DontStripLala))
         {
-            configuration.dontStripLala = !_StripLala;
+            configuration.dontStripLala = _DontStripLala;
             configuration.Save();
             if (configuration.enabled)
                 InvokeConfigChanged(true);
