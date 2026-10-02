@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Plugin.Services;
@@ -239,6 +240,16 @@ namespace OopsAllNudist.Utils
         private static readonly ConcurrentDictionary<string, DeathState> DeathStates = new();
         private static int LastGearsetIndex = -1;
 
+        private static bool WasBoundByDuty;
+        private static bool DutyFlagInitialized;
+
+        private static bool DutyResetPending;
+        private static DateTime DutyResetDeadline = DateTime.MinValue;
+        private static DateTime DutyResetReadyAt = DateTime.MinValue;
+
+        private static readonly TimeSpan DutyResetMaxWait = TimeSpan.FromSeconds(90);
+        private static readonly TimeSpan DutyResetSettleDelay = TimeSpan.FromSeconds(1);
+
         private static readonly TimeSpan ZoneRestoreWindow = TimeSpan.FromSeconds(5);
 
         private static void OnTerritoryChanged(uint territoryType)
@@ -253,6 +264,89 @@ namespace OopsAllNudist.Utils
                     state.ZoneRestoreArmedUntil = until;
                 }
             }
+        }
+
+        private static bool IsStripOnDeathEnabled()
+        {
+            var configuration = Service.configuration;
+            return configuration.stripOnDeathSelf || configuration.stripOnDeathPC;
+        }
+
+        private static void UpdateDutyAutoReset()
+        {
+            bool boundByDuty = Service.condition[ConditionFlag.BoundByDuty];
+
+            if (!Service.configuration.stripOnDeathResetOnDuty || !IsStripOnDeathEnabled())
+            {
+                WasBoundByDuty = boundByDuty;
+                DutyFlagInitialized = true;
+                DutyResetPending = false;
+                return;
+            }
+
+            if (!DutyFlagInitialized)
+            {
+                DutyFlagInitialized = true;
+                WasBoundByDuty = boundByDuty;
+                return;
+            }
+
+            bool enteredDuty = boundByDuty && !WasBoundByDuty;
+            WasBoundByDuty = boundByDuty;
+
+            if (enteredDuty)
+            {
+                DutyResetPending = true;
+                DutyResetDeadline = DateTime.UtcNow + DutyResetMaxWait;
+                DutyResetReadyAt = DateTime.UtcNow + DutyResetSettleDelay;
+            }
+
+            if (DutyResetPending)
+                ProcessDutyReset();
+        }
+
+        private static void ProcessDutyReset()
+        {
+            bool loading = Service.condition[ConditionFlag.BetweenAreas]
+                || Service.condition[ConditionFlag.BetweenAreas51];
+
+            if (loading)
+            {
+                DutyResetReadyAt = DateTime.UtcNow + DutyResetSettleDelay;
+                return;
+            }
+
+            bool overdue = DateTime.UtcNow >= DutyResetDeadline;
+            if (DateTime.UtcNow < DutyResetReadyAt && !overdue)
+                return;
+
+            if (!overdue && !IsPartyLoaded())
+                return;
+
+            DutyResetPending = false;
+
+            ResetDeathCounters();
+            RefreshAllPlayers(false);
+
+            if (Service.configuration.debugMode)
+                Plugin.OutputChatLine("Entered a duty. Refreshed all players and reset strip-on-death counters.");
+        }
+
+        private static bool IsPartyLoaded()
+        {
+            var party = Service.partyList;
+            if (party == null)
+                return true;
+
+            foreach (var member in party)
+            {
+                if (member == null)
+                    continue;
+                if (member.GameObject == null)
+                    return false;
+            }
+
+            return true;
         }
 
         public static void ResetDeathCounters()
@@ -350,6 +444,7 @@ namespace OopsAllNudist.Utils
                     return;
 
                 UpdateGearsetReset(localPlayer);
+                UpdateDutyAutoReset();
 
                 foreach (var obj in Service.objectTable)
                 {

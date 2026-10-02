@@ -478,6 +478,19 @@ internal class ConfigWindow : Window
         Tooltip("When disabled, strip on death only works in PvE.");
 
         ImGui.Spacing();
+
+        ImGui.BeginDisabled(!configuration.stripOnDeathSelf && !configuration.stripOnDeathPC);
+        bool _stripOnDeathResetOnDuty = configuration.stripOnDeathResetOnDuty;
+        if (ImGui.Checkbox("Reset when entering a duty##stripOnDeathResetOnDuty", ref _stripOnDeathResetOnDuty))
+        {
+            configuration.stripOnDeathResetOnDuty = _stripOnDeathResetOnDuty;
+            configuration.Save();
+        }
+        Tooltip("When enabled, entering a duty clears all strip-on-death effects, " +
+            "returning affected players to their equipped state.");
+        ImGui.EndDisabled();
+
+        ImGui.Spacing();
         ImGui.Separator();
         ImGui.TextWrapped("Notes:");
         ImGui.BulletText("Only Self and non-synced other players (PCs) are affected, if enabled.");

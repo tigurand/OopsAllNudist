@@ -1,3 +1,4 @@
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects;
 using Dalamud.IoC;
 using Dalamud.Plugin;
@@ -18,9 +19,11 @@ internal class Service
     [PluginService] public static IDalamudPluginInterface pluginInterface { get; set; } = null!;
     [PluginService] public static IChatGui chatGui { get; private set; } = null!;
     [PluginService] public static IClientState clientState { get; private set; } = null!;
+    [PluginService] public static ICondition condition { get; private set; } = null!;
     [PluginService] public static ICommandManager commandManager { get; private set; } = null!;
     [PluginService] public static IObjectTable objectTable { get; private set; } = null!;
     [PluginService] public static ITargetManager targetManager { get; private set; } = null!;
+    [PluginService] public static IPartyList partyList { get; private set; } = null!;
     [PluginService] public static IFramework Framework { get; private set; } = null!;
     [PluginService] public static IPluginLog Log { get; private set; } = null!;
 }

@@ -45,6 +45,7 @@ namespace OopsAllNudist
         public bool stripOnDeathSelf { get; set; } = false;
         public bool stripOnDeathPC { get; set; } = false;
         public bool stripOnDeathInPvP { get; set; } = false;
+        public bool stripOnDeathResetOnDuty { get; set; } = false;
 
         public SortedSet<string> Whitelist { get; set; } = new(StringComparer.Ordinal);
 
